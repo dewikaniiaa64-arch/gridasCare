@@ -7,7 +7,7 @@ import FormJadwal from "@/app/components/Admin/Jadwal/FormJadwal";
 
 // 1. Definisikan tipe data item jadwal secara global di file ini
 export type JadwalItem = {
-  id:string;
+  id: string;
   hari: string;
   jam: string;
   nama: string;
