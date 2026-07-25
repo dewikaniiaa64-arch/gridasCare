@@ -51,13 +51,13 @@ export default function Navbar() {
           Siswa Sakit
         </Link>
         <Link 
-          href="/pp" 
+          href="/pertolongan" 
           className={`transition ${isActive('/pp') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
         >
           PP
         </Link>
         <Link 
-          href="/obat_obatan" 
+          href="/obat2" 
           className={`transition ${isActive('/obat_obatan') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
         >
           Obat-Obatan
