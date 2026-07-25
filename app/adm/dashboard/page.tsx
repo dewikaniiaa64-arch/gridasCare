@@ -94,6 +94,8 @@ export default function SiswaSakitPage() {
                 <th className="py-3 px-4 text-center w-20">Aksi</th>
               </tr>
             </thead>
+
+            
             <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
               {filteredData.length > 0 ? (
                 filteredData.map((item, index) => (

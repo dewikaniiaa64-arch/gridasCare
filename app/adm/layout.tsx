@@ -8,6 +8,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
 
+  
+
   return (
     <div className="flex h-screen bg-blue-400">
       {/* Sidebar */}
