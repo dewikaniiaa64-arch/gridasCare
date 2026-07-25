@@ -71,9 +71,6 @@ export default function Home() {
             href="#menu-section"
 <<<<<<< HEAD
             className="bg-[#0A405A] text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block"
-=======
-            className="bg-blue-700 text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block"
->>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
           >
             Lihat Informasi →
           </Link>
@@ -131,11 +128,6 @@ export default function Home() {
                   />
                 </div>
 
-<<<<<<< HEAD
-                {/* Garis Pendek Berwarna Dinamis */}
-=======
-
->>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
                 <div
                   className="w-10 h-1 rounded-full mb-5"
                   style={{ backgroundColor: menu.lineColor }}
