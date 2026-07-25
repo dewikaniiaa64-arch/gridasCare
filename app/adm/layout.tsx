@@ -1,24 +1,77 @@
+'use client';
+
 import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
   return (
-    <div className="flex h-screen bg-[#E6F3FF]">
-      {/* Sidebar - Bagian kiri */}
-      <aside className="w-64 bg-white p-6 shadow-md">
-        <h1 className="text-2xl font-bold text-red-600 mb-10">gridasCare</h1>
-        <nav className="space-y-4">
-          <Link href="/dashboard" className="block p-3 bg-gray-800 text-white rounded-xl font-bold">
-            Siswa Sakit
-          </Link>S
-          <Link href="/jadwal" className="block p-3 text-gray-600 hover:bg-blue-50 rounded-xl font-bold">
-            Jadwal Petugas
-          </Link>
-        </nav>
+    <div className="flex h-screen bg-blue-400">
+      {/* Sidebar */}
+      <aside className="w-64 bg-[#4da3ff] p-6 flex flex-col justify-between shadow-md">
+        <div>
+          {/* Logo & Teks dengan Garis di Tengah Bawah Tulisan */}
+          <div className="flex flex-col items-center mb-10 pt-2">
+            <div className="flex items-center gap-2">
+              {/* Gambar pmi.png */}
+              <div className="relative w-12 h-12">
+                <Image 
+                  src="/images/pmi.png" 
+                  alt="Logo Icon" 
+                  fill 
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              {/* Teks GridasCare */}
+              <span className="text-white font-extrabold text-2xl tracking-wide">
+                gridas<span className="text-red-500">Care</span>
+              </span>
+            </div>
+            {/* Garis putih tepat di bawah tulisan, diatur lebarnya (w-44) dan posisinya disesuaikan agar di tengah */}
+            <div className="w-26 h-0.5 bg-white mt-1 ml-10"></div>
+          </div>
+
+          <nav className="space-y-4 text-center">
+            <Link
+              href="/adm/dashboard"
+              className={`block py-3 px-6 rounded-full font-bold shadow-md transition ${
+                pathname === '/adm/dashboard' 
+                  ? 'bg-[#182232] text-white' 
+                  : 'text-[#182232] hover:bg-white/20'
+              }`}
+            >
+              Siswa Sakit
+            </Link>
+            <Link
+              href="/adm/jadwal"
+              className={`block py-3 px-6 rounded-full font-bold transition ${
+                pathname === '/adm/jadwal' 
+                  ? 'bg-[#182232] text-white' 
+                  : 'text-[#182232] hover:bg-white/20'
+              }`}
+            >
+              Jadwal Petugas
+            </Link>
+          </nav>
+        </div>
+
+        <div className="text-center pb-4">
+          <button
+            onClick={() => router.push('/login')}
+            className="font-bold text-[#182232] hover:text-red-700 transition"
+          >
+            Logout
+          </button>
+        </div>
       </aside>
 
-      {/* Area Konten - Bagian kanan */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="bg-white p-6 rounded-3xl shadow-sm min-h-full">
+      {/* Konten Utama */}
+      <main className="flex-1 p-8 overflow-y-auto bg-white">
+        <div className="min-h-full">
           {children}
         </div>
       </main>
