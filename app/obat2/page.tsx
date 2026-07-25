@@ -46,7 +46,9 @@ export default function ObatObatanPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#E6F3FF] p-8">
+    <div className="min-h-screen p-8" style={{
+        backgroundImage: "url('/images/background.png')",
+      }}>
       {/* Hero Section (Judul dikembalikan) */}
       <div className="flex items-center justify-between mb-12">
         <div>
@@ -54,7 +56,7 @@ export default function ObatObatanPage() {
           <p className="text-gray-600 text-lg">Daftar obat yang tersedia di uks untuk membantu mengatasi keluhan ringan</p>
         </div>
         <div className="hidden md:block w-80 h-40 relative">
-          <Image src="/images/hero-obat.png" alt="Ilustrasi Obat" fill className="object-contain" />
+          <Image src="/images/obat.png" alt="Ilustrasi Obat" fill className="object-contain" />
         </div>
       </div>
 
