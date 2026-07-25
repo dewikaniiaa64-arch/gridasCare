@@ -8,6 +8,7 @@ interface MenuItem {
   lineColor: string;
 }
 
+
 export default function Home() {
   const menuItems: MenuItem[] = [
     {
