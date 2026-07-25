@@ -14,7 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (username === "admin" && password === "caregridas") {
-      router.push('/admin/jadwal');
+      router.push('/adm/dashboard');
     } else {
       alert("Username atau Password salah!");
     }
@@ -32,13 +32,12 @@ export default function LoginPage() {
       />
 
       {/* 2. Overlay Lapisan Transparan Sesuai Figma */}
-      <div className="absolute inset-0 bg-[#0A405A]/30 mix-blend-multiply"></div>
-      <div className="absolute inset-0 bg-sky-200/40"></div>
+      <div className="absolute inset-0 bg-black/60"></div>
 
       {/* 3. Icon Home di Pojok Kiri Atas */}
       <Link
         href="/"
-        className="absolute top-6 left-6 z-20 text-[#0A405A] hover:text-black transition-colors"
+        className="absolute top-6 left-6 z-20 text-gray-500 hover:text-black transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -56,8 +55,8 @@ export default function LoginPage() {
         </svg>
       </Link>
 
-      {/* 4. Card Login Jelas dengan Border Hitam Tegas */}
-      <div className="relative z-10 bg-gradient-to-b from-[#7ec5e3] via-[#5b9eb4] to-[#467d8d] p-8 md:p-10 rounded-[32px] shadow-2xl w-full max-w-sm md:max-w-md border-2 border-black/80 text-white flex flex-col items-center">
+
+      <div className="relative z-10 bg-cyan-600 p-10 md:p-12 rounded-[32px] shadow-2xl w-full max-w-sm md:max-w-md border-2 border-black/80 text-white flex flex-col items-center">
 
         {/* Header Logo UKS & Nama App */}
         <div className="flex flex-col items-center mb-8">
@@ -68,7 +67,7 @@ export default function LoginPage() {
               className="w-full h-full object-contain drop-shadow"
             />
           </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
             gridas<span className="text-red-500">Care</span>
           </h2>
         </div>
@@ -104,9 +103,9 @@ export default function LoginPage() {
           <div className="pt-4 flex justify-center">
             <button
               type="submit"
-              className="w-1/2 bg-[#0066FF] text-white py-2.5 rounded-full font-bold text-lg hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20"
+              className="w-1/2 bg-[#0066FF] text-white py-2.5 rounded-full font-bold text-lg hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
             >
-              LOGIN
+              Login
             </button>
           </div>
         </form>
