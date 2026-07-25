@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="space-y-4">
           <Link href="/dashboard" className="block p-3 bg-gray-800 text-white rounded-xl font-bold">
             Siswa Sakit
-          </Link>
+          </Link>S
           <Link href="/jadwal" className="block p-3 text-gray-600 hover:bg-blue-50 rounded-xl font-bold">
             Jadwal Petugas
           </Link>

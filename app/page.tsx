@@ -22,14 +22,22 @@ export default function Home() {
       desc: "Laporkan kondisi siswa sakit dan lakukan pencatatan.",
       path: "/user_siswasakit",
       imageSrc: "/images/sakit.png",
+<<<<<<< HEAD
       lineColor: "#79A0B4",
+=======
+      lineColor: "#F52020",
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
     },
     {
       title: "Pertolongan Pertama",
       desc: "Panduan P3K untuk penanganan cedera dan keadaan darurat.",
       path: "/pertolongan",
       imageSrc: "/images/pertolongan.png",
+<<<<<<< HEAD
       lineColor: "#F52020",
+=======
+      lineColor: "#79A0B4",
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
     },
     {
       title: "Obat-Obatan",
@@ -61,7 +69,11 @@ export default function Home() {
           </p>
           <Link
             href="#menu-section"
+<<<<<<< HEAD
             className="bg-[#0A405A] text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block"
+=======
+            className="bg-blue-700 text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block"
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
           >
             Lihat Informasi →
           </Link>
@@ -69,7 +81,10 @@ export default function Home() {
 
         {/* Kontainer Logo UKS dan Logo Sekolah */}
         <div className="relative z-10 mt-8 md:mt-0 flex items-start justify-center gap-6 md:gap-8">
+<<<<<<< HEAD
           {/* Logo UKS / PMI (Sangat Besar) */}
+=======
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
           <div className="w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
             <img
               src="/images/uks.png"
@@ -78,7 +93,10 @@ export default function Home() {
             />
           </div>
 
+<<<<<<< HEAD
           {/* Logo Sekolah (Dinaikkan signifikan ke atas / sejajar atas logo PMI) */}
+=======
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
           <div className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center -translate-y-8 md:-translate-y-12">
             <img
               src="/images/smk.png"
@@ -101,7 +119,11 @@ export default function Home() {
               <div className="bg-white p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] text-center border border-gray-100 flex flex-col items-center h-full cursor-pointer">
 
                 {/* Container Gambar Fitur */}
+<<<<<<< HEAD
                 <div className="w-16 h-16 mb-3 flex items-center justify-center">
+=======
+                <div className="w-20 h-20 mb-3 flex items-center justify-center">
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
                   <img
                     src={menu.imageSrc}
                     alt={menu.title}
@@ -109,7 +131,11 @@ export default function Home() {
                   />
                 </div>
 
+<<<<<<< HEAD
                 {/* Garis Pendek Berwarna Dinamis */}
+=======
+
+>>>>>>> d612898ddc025a0baabcf56e79b693b64b870f97
                 <div
                   className="w-10 h-1 rounded-full mb-5"
                   style={{ backgroundColor: menu.lineColor }}
