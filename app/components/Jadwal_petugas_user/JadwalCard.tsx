@@ -20,10 +20,10 @@ export default function JadwalCard({ hari }: Props) {
   const data = jadwalData[hari as keyof typeof jadwalData];
 
   return (
-    <div className="w-[175px] rounded-[22px] overflow-hidden shadow-lg bg-[#8FC3F7]">
+    <div className="w-[190px] rounded-[22px] overflow-hidden shadow-lg bg-[#8FC3F7]">
 
       {/* Header */}
-      <div className="relative bg-[#243B77] h-14 flex items-center justify-center rounded-t-[22px]">
+      <div className="relative bg-[#243B77] h-10 flex items-center justify-center rounded-t-[22px]">
 
   {/* Icon di kiri */}
   <CalendarDays
@@ -43,7 +43,7 @@ export default function JadwalCard({ hari }: Props) {
         {data.map((item, index) => (
           <div
             key={index}
-            className="px-3 py-4 border-b border-[#74A9E8] last:border-none"
+            className="px-3 py-2 border-b border-[#74A9E8] last:border-none"
           >
             {/* Jam */}
             <div className="flex items-center gap-2 text-white text-[12px] font-medium">
@@ -52,7 +52,7 @@ export default function JadwalCard({ hari }: Props) {
             </div>
 
             {/* Nama */}
-            <div className="flex gap-2 mt-3 items-start">
+            <div className="flex gap-3 mt-1 items-start">
 
               <Image
   src="/images/icon1.png"
