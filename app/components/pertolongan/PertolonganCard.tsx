@@ -14,48 +14,44 @@ export default function PertolonganCard({
   onClick,
 }: PertolonganCardProps) {
   return (
-    <div className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition duration-300 hover:-translate-y-2 border border-gray-200">
-
+    <div className="bg-white rounded-[22px] shadow-md hover:shadow-lg transition duration-300 hover:-translate-y-1 border border-gray-200">
       {/* Gambar */}
-      <div className="flex justify-center pt-6">
-        <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center">
-          <Image
-            src={image}
-            alt={title}
-            width={70}
-            height={70}
-          />
+      <div className="flex justify-center pt-4">
+        <div className="w-24 h-24 rounded-full bg-[#EAF4FF] flex items-center justify-center mx-auto mt-5">
+         <Image
+  src={image}
+  alt={title}
+  width={100}
+  height={100}
+  className="object-contain"
+/>
         </div>
       </div>
 
       {/* Isi */}
-      <div className="px-5 pt-4 pb-5 flex flex-col h-[240px]">
+     <div className="px-5 pt-3 pb-4 flex flex-col h-[170px]">
 
         {/* Judul */}
-        <h2
-          className={`font-bold text-gray-800 leading-tight min-h-[56px] ${
-            title === "Sengatan Serangga" ? "text-lg" : "text-[22px]"
-          }`}
-        >
-          {title}
-        </h2>
+        <h2 className="text-[17px] font-bold text-center text-gray-900 leading-tight">
+  {title}
+</h2>
 
         {/* Deskripsi */}
-        <p className="text-sm text-gray-500 mt-2 min-h-[72px]">
-          {description}
-        </p>
+        <p className="text-[13px] text-gray-600 text-center mt-2 leading-5 min-h-[55px]">
+  {description}
+</p>
 
         {/* Bagian bawah */}
         <div className="mt-auto">
-          <hr className="mb-3" />
+          <hr className="my-3 border-gray-300" />
 
           <button
-            onClick={onClick}
-            className="w-full flex justify-between items-center text-blue-600 font-semibold hover:text-blue-800"
-          >
-            <span>Lihat Panduan</span>
-            <span className="text-xl">➜</span>
-          </button>
+  onClick={onClick}
+  className="w-full flex justify-center items-center gap-2 text-[#2563EB] font-semibold text-[15px] hover:text-gray-700 transition"
+>
+  <span>Lihat Panduan</span>
+  <span className="text-lg">→</span>
+</button>
         </div>
 
       </div>
