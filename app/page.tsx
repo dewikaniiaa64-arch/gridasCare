@@ -8,7 +8,6 @@ interface MenuItem {
   lineColor: string;
 }
 
-
 export default function Home() {
   const menuItems: MenuItem[] = [
     {
@@ -35,91 +34,117 @@ export default function Home() {
     {
       title: "Obat-Obatan",
       desc: "Informasi obat-obatan yang tersedia di UKS sekolah.",
-      path: "/obat-obatan",
+      path: "/obat2",
       imageSrc: "/images/obatan.png",
       lineColor: "#79A0B4",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* 1. Hero Section */}
+    <div className="min-h-screen bg-white w-full overflow-x-hidden">
+
+      {/* 1. HERO SECTION */}
       <section
-        className="relative py-20 px-10 md:px-16 flex flex-col md:flex-row items-center justify-between bg-cover bg-center min-h-[420px]"
+        className="relative py-10 md:py-20 px-4 sm:px-8 md:px-16 bg-cover bg-center min-h-[500px] flex items-center justify-center"
         style={{ backgroundImage: "url('/images/bc.png')" }}
       >
         <div className="absolute inset-0 bg-sky-200/30"></div>
 
-        <div className="relative z-10 max-w-xl">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#0A405A] mb-4 leading-tight">
-            Welcome to <br />
-            <span className="text-white">Gridas</span>
-            <span className="text-red-500">Care</span> <br />
-            <span className="text-[#0A405A]">SMK Negeri 2</span>
-          </h1>
-          <p className="text-gray-700 mb-8 max-w-md text-sm md:text-base">
-            GridasCare hadir untuk mewujudkan lingkungan sekolah yang sehat, aman, dan siap membantu.
-          </p>
-          <Link
-            href="#menu-section"
-            className="bg-[#0A405A] text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block"
-          >
-            Lihat Informasi →
-          </Link>
+        {/* LOGO SMK: Selalu di Pojok Kanan Atas */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-20 w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24">
+          <img
+            src="/images/smk.png"
+            alt="Logo SMK Negeri 2"
+            className="w-full h-full object-contain drop-shadow-md"
+          />
         </div>
 
-        {/* Kontainer Logo UKS dan Logo Sekolah */}
-        <div className="relative z-10 mt-8 md:mt-0 flex items-start justify-center gap-6 md:gap-8">
-          <div className="w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+        {/* KONTAINER UTAMA */}
+        <div className="relative z-10 max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-8 pt-6 md:pt-0">
+
+          {/* SISI KIRI (Teks & Tombol) */}
+          <div className="max-w-xl text-center md:text-left flex flex-col items-center md:items-start w-full">
+
+            {/* Judul */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#0A405A] mb-3 leading-tight">
+              Welcome to <br />
+              <span className="text-white">Gridas</span>
+              <span className="text-red-500">Care</span> <br />
+              <span className="text-[#0A405A]">SMK Negeri 2</span>
+            </h1>
+
+            {/* FOTO / LOGO UKS (Khusus Tampil di HP/Tablet di antara Judul & Motto) */}
+            <div className="flex md:hidden items-center justify-center w-48 h-48 my-3">
+              <img
+                src="/images/uks.png"
+                alt="Logo UKS"
+                className="w-full h-full object-contain drop-shadow-lg"
+              />
+            </div>
+
+            {/* Motto / Deskripsi (Dibuat BOLD & Pekat di HP agar Sangat Jelas) */}
+            <p className="text-gray-900 font-bold md:font-medium md:text-gray-700 my-3 max-w-md text-sm sm:text-base leading-relaxed">
+              GridasCare hadir untuk mewujudkan lingkungan sekolah yang sehat, aman, dan siap membantu.
+            </p>
+
+            {/* Tombol "Lihat Informasi" */}
+            <Link
+              href="#menu-section"
+              className="bg-[#0A405A] text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block text-sm sm:text-base font-semibold mt-2"
+            >
+              Lihat Informasi →
+            </Link>
+          </div>
+
+          {/* SISI KANAN (Logo UKS Khusus Tampilan Desktop/Laptop) */}
+          <div className="hidden md:flex items-center justify-center w-80 h-80">
             <img
               src="/images/uks.png"
               alt="Logo UKS"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-lg"
             />
           </div>
 
-          <div className="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center -translate-y-8 md:-translate-y-12">
-            <img
-              src="/images/smk.png"
-              alt="Logo Sekolah"
-              className="w-full h-full object-contain"
-            />
-          </div>
         </div>
       </section>
 
-      {/* 2. Grid Menu Section */}
-      <section id="menu-section" className="py-16 px-10 md:px-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+      {/* 2. GRID MENU SECTION */}
+      <section id="menu-section" className="py-12 md:py-16 px-4 sm:px-8 md:px-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {menuItems.map((menu: MenuItem) => (
             <Link
               href={menu.path}
               key={menu.title}
-              className="block transition-transform duration-200 hover:-translate-y-2"
+              className="block transition-transform duration-200 hover:-translate-y-2 h-full"
             >
-              <div className="bg-white p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] text-center border border-gray-100 flex flex-col items-center h-full cursor-pointer">
+              <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] text-center border border-gray-100 flex flex-col items-center justify-between h-full cursor-pointer">
+                <div className="flex flex-col items-center">
 
-                {/* Container Gambar Fitur */}
-                <div className="w-20 h-20 mb-3 flex items-center justify-center">
-                  <img
-                    src={menu.imageSrc}
-                    alt={menu.title}
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  {/* Icon Menu */}
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mb-3 flex items-center justify-center">
+                    <img
+                      src={menu.imageSrc}
+                      alt={menu.title}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+
+                  {/* Garis Aksen Warna */}
+                  <div
+                    className="w-10 h-1 rounded-full mb-4"
+                    style={{ backgroundColor: menu.lineColor }}
+                  ></div>
+
+                  {/* Judul & Deskripsi Card */}
+                  <h3 className="font-bold text-lg sm:text-xl mb-2 text-gray-800">{menu.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{menu.desc}</p>
                 </div>
-
-                <div
-                  className="w-10 h-1 rounded-full mb-5"
-                  style={{ backgroundColor: menu.lineColor }}
-                ></div>
-
-                <h3 className="font-bold text-xl mb-3 text-gray-800">{menu.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{menu.desc}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
+
     </div>
   );
-}
+} 
