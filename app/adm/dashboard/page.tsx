@@ -37,12 +37,12 @@ export default function SiswaSakitPage() {
   );
 
   return (
-    <div className="p-10 bg-white min-h-full relative">
-      <h1 className="text-3xl font-bold text-[#3b82f6] mb-8">
+    <div className="p-4 sm:p-10 bg-white min-h-full relative overflow-x-hidden">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#3b82f6] mb-6 sm:mb-8">
         Data Siswa Sakit
       </h1>
 
-      <div className="bg-gray-100 p-6 rounded-2xl shadow-inner">
+      <div className="bg-gray-100 p-4 sm:p-6 rounded-2xl shadow-inner">
         {/* Baris Pencarian & Tombol Ekspor */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div className="relative w-full sm:w-72">
@@ -70,85 +70,86 @@ export default function SiswaSakitPage() {
 
           <button
             onClick={() => alert('Laporan berhasil diexport!')}
-            className="flex items-center gap-2 bg-blue-950 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-950 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow transition"
           >
             <svg width="24" height="24" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M31.7998 11.667C32.9199 11.667 33.4804 11.6668 33.9082 11.8848C34.2844 12.0765 34.5905 12.3825 34.7822 12.7588C35.0001 13.1865 35 13.7466 35 14.8662V25.9668C35 27.0864 35 27.6465 34.7822 28.0742C34.5905 28.4504 34.2844 28.7565 33.9082 28.9482C33.4804 29.1662 32.9199 29.167 31.7998 29.167H8.2002C7.08009 29.167 6.51962 29.1662 6.0918 28.9482C5.71563 28.7565 5.40946 28.4504 5.21777 28.0742C5.00001 27.6465 5 27.0864 5 25.9668V11.667H31.7998ZM17.499 22.0039L13.9912 18.9355L13.333 19.6875L12.6748 20.4404L16.8408 24.0859L17.5 24.6621L18.1582 24.0859L26.4912 16.7949L25.1748 15.2891L17.499 22.0039Z" fill="white"/>
-              <path d="M5 11.2917C5 9.40605 5 8.46324 5.58579 7.87746C6.17157 7.29167 7.11438 7.29167 9 7.29167H15.1637C15.9069 7.29167 16.2785 7.29167 16.6187 7.41947C16.9588 7.54726 17.2384 7.79196 17.7977 8.28136L21.6667 11.6667H5V11.2917Z" fill="white"/>
+              <path d="M5 11.2917C5 9.40605 5 8.46324 5.58579 7.87746C6.17157 7.29167 7.11438 7.29167 9 7.29167H15.1637C15.9069 7.29167 16.2785 7.29167 16.6187 7.41947C16.9588 7.54726 17.2384 7.79196 17.7777 8.28136L21.6667 11.6667H5V11.2917Z" fill="white"/>
             </svg>
             Export Laporan
           </button>
         </div>
 
-        {/* Tabel Data */}
-        <div className="bg-white rounded-xl shadow overflow-hidden border border-gray-200">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#bfdbfe] text-gray-800 text-sm font-bold border-b border-gray-200">
-                <th className="py-3 px-4 text-center w-16">No</th>
-                <th className="py-3 px-4">Nama</th>
-                <th className="py-3 px-4">Kelas</th>
-                <th className="py-3 px-4">Keluhan</th>
-                <th className="py-3 px-4">Tanggal</th>
-                <th className="py-3 px-4">Penanganan</th>
-                <th className="py-3 px-4 text-center w-20">Aksi</th>
-              </tr>
-            </thead>
+        {/* Tabel Data dengan Pembungkus overflow-x-auto agar bisa digeser horizontal */}
+        <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-[#bfdbfe] text-gray-800 text-sm font-bold border-b border-gray-200">
+                  <th className="py-3 px-4 text-center w-16">No</th>
+                  <th className="py-3 px-4">Nama</th>
+                  <th className="py-3 px-4">Kelas</th>
+                  <th className="py-3 px-4">Keluhan</th>
+                  <th className="py-3 px-4">Tanggal</th>
+                  <th className="py-3 px-4">Penanganan</th>
+                  <th className="py-3 px-4 text-center w-20">Aksi</th>
+                </tr>
+              </thead>
 
-            
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 text-center">{index + 1}</td>
-                    <td className="py-3 px-4 font-medium">{item.nama}</td>
-                    <td className="py-3 px-4">{item.kelas}</td>
-                    <td className="py-3 px-4">{item.keluhan}</td>
-                    <td className="py-3 px-4">{item.tanggal}</td>
-                    <td className="py-3 px-4">{item.penanganan}</td>
-                    <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => confirmDelete(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded transition"
-                        title="Hapus"
-                      >
-                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M19.2501 8.25C18.2376 8.25 17.4172 9.07064 17.4171 10.083V13.25C17.4171 16.0783 17.4167 17.4924 16.5381 18.3711C15.6595 19.2497 14.2453 19.25 11.4171 19.25H10.5831C7.75486 19.25 6.34062 19.2497 5.46198 18.3711C4.58346 17.4924 4.58307 16.0783 4.58307 13.25V10.083C4.58289 9.07064 3.76247 8.25 2.75006 8.25V5.5H19.2501V8.25ZM8.70807 9.08301C8.15604 9.08318 7.70824 9.53098 7.70807 10.083V14.666C7.70807 15.2182 8.15593 15.6658 8.70807 15.666C9.26035 15.666 9.70807 15.2183 9.70807 14.666V10.083C9.70789 9.53087 9.26024 9.08301 8.70807 9.08301ZM13.2911 9.08301C12.7392 9.08336 12.2913 9.53109 12.2911 10.083V14.666C12.2911 15.2181 12.7391 15.6657 13.2911 15.666C13.8434 15.666 14.2911 15.2183 14.2911 14.666V10.083C14.2909 9.53087 13.8433 9.08301 13.2911 9.08301Z" fill="#C10A0A"/>
-                          <path d="M9.22912 3.08971C9.33357 2.99225 9.56374 2.90613 9.88392 2.84471C10.2041 2.78329 10.5964 2.75 11 2.75C11.4036 2.75 11.7959 2.78329 12.116 2.84471C12.4362 2.90613 12.6664 2.99225 12.7708 3.08971" stroke="#C10A0A" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                      </button>
+              <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+                {filteredData.length > 0 ? (
+                  filteredData.map((item, index) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="py-3 px-4 text-center">{index + 1}</td>
+                      <td className="py-3 px-4 font-medium">{item.nama}</td>
+                      <td className="py-3 px-4">{item.kelas}</td>
+                      <td className="py-3 px-4">{item.keluhan}</td>
+                      <td className="py-3 px-4">{item.tanggal}</td>
+                      <td className="py-3 px-4">{item.penanganan}</td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => confirmDelete(item.id)}
+                          className="text-red-500 hover:text-red-700 p-1 rounded transition inline-flex items-center justify-center"
+                          title="Hapus"
+                        >
+                          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.2501 8.25C18.2376 8.25 17.4172 9.07064 17.4171 10.083V13.25C17.4171 16.0783 17.4167 17.4924 16.5381 18.3711C15.6595 19.2497 14.2453 19.25 11.4171 19.25H10.5831C7.75486 19.25 6.34062 19.2497 5.46198 18.3711C4.58346 17.4924 4.58307 16.0783 4.58307 13.25V10.083C4.58289 9.07064 3.76247 8.25 2.75006 8.25V5.5H19.2501V8.25ZM8.70807 9.08301C8.15604 9.08318 7.70824 9.53098 7.70807 10.083V14.666C7.70807 15.2182 8.15593 15.6658 8.70807 15.666C9.26035 15.666 9.70807 15.2183 9.70807 14.666V10.083C9.70789 9.53087 9.26024 9.08301 8.70807 9.08301ZM13.2911 9.08301C12.7392 9.08336 12.2913 9.53109 12.2911 10.083V14.666C12.2911 15.2181 12.7391 15.6657 13.2911 15.666C13.8434 15.666 14.2911 15.2183 14.2911 14.666V10.083C14.2909 9.53087 13.8433 9.08301 13.2911 9.08301Z" fill="#C10A0A"/>
+                            <path d="M9.22912 3.08971C9.33357 2.99225 9.56374 2.90613 9.88392 2.84471C10.2041 2.78329 10.5964 2.75 11 2.75C11.4036 2.75 11.7959 2.78329 12.116 2.84471C12.4362 2.90613 12.6664 2.99225 12.7708 3.08971" stroke="#C10A0A" stroke-width="2" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-gray-400">
+                      Tidak ada data yang ditemukan.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-gray-400">
-                    Tidak ada data yang ditemukan.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Pop-up Modal Konfirmasi Hapus disamakan persis dengan Figma */}
+      {/* Pop-up Modal Konfirmasi Hapus */}
       {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl shadow-2xl px-10 py-12 w-full max-w-lg text-center border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-10 tracking-tight">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl px-6 sm:px-10 py-10 sm:py-12 w-full max-w-lg text-center border border-gray-100">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-8 sm:mb-10 tracking-tight">
               Apakah kamu yakin ingin menghapusnya?
             </h2>
-            <div className="flex justify-center gap-6">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
               <button
                 onClick={handleDeleteYes}
-                className="bg-[#FF3B30] hover:bg-red-600 text-white font-bold px-14 py-3 rounded-xl shadow transition"
+                className="bg-[#FF3B30] hover:bg-red-600 text-white font-bold px-10 sm:px-14 py-3 rounded-xl shadow transition"
               >
                 Ya
               </button>
               <button
                 onClick={handleDeleteNo}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 font-bold px-14 py-3 rounded-xl shadow-xs transition"
+                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 font-bold px-10 sm:px-14 py-3 rounded-xl shadow-xs transition"
               >
                 Tidak
               </button>
