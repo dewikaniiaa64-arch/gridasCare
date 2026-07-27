@@ -1,3 +1,11 @@
+import Image from "next/image";
+import { jadwalData } from "./jadwalData";
+import {
+  CalendarDays,
+  Clock3,
+  CircleUserRound,
+} from "lucide-react";
+
 type JadwalItem = {
   jam: string;
   nama: string;
@@ -6,45 +14,70 @@ type JadwalItem = {
 
 type Props = {
   hari: string;
-  jadwal?: JadwalItem[];
 };
 
-export default function JadwalCard({ hari, jadwal = [] }: Props) {
-  // Jika jadwal kosong, kita buat data tiruan agar terlihat isi seperti di Figma
-  const displayJadwal = jadwal.length > 0 ? jadwal : [
-    { jam: "07:00-09:00", nama: "Fitri", jabatan: "Ketua" },
-    { jam: "09:00-11:00", nama: "Selma", jabatan: "Anggota" },
-    { jam: "11:00-13:00", nama: "Farhan", jabatan: "Anggota" },
-    { jam: "13:00-15:00", nama: "Restu", jabatan: "Anggota" },
-  ];
+export default function JadwalCard({ hari }: Props) {
+  const data = jadwalData[hari as keyof typeof jadwalData];
 
   return (
-    <div className="bg-[#a3cfff] rounded-2xl shadow-lg overflow-hidden border border-blue-300 w-full">
-      {/* Header Kartu (Biru Tua) */}
-      <div className="bg-[#2c4e75] text-white p-3 text-center font-bold text-lg flex items-center justify-center gap-2">
-        <span>📅</span> {/* Ganti dengan icon calendar jika ada */}
-        {hari}
-      </div>
+    <div className="w-[190px] rounded-[22px] overflow-hidden shadow-lg bg-[#8FC3F7]">
 
-      {/* List Petugas */}
-      <div className="p-3 flex flex-col gap-3">
-        {displayJadwal.map((item, index) => (
-          <div key={index} className="text-[#1e3a5f] border-b border-blue-200/50 last:border-0 pb-2 last:pb-0">
+      {/* Header */}
+      <div className="relative bg-[#243B77] h-10 flex items-center justify-center rounded-t-[22px]">
+
+  {/* Icon di kiri */}
+  <CalendarDays
+    size={20}
+    className="absolute left-4 text-white"
+  />
+
+  {/* Hari tetap di tengah */}
+  <span className="text-white font-bold text-[18px]">
+    {hari}
+  </span>
+
+</div>
+
+      {/* Isi */}
+      <div>
+        {data.map((item, index) => (
+          <div
+            key={index}
+            className="px-3 py-2 border-b border-[#74A9E8] last:border-none"
+          >
             {/* Jam */}
-            <div className="flex items-center gap-1 text-xs font-semibold text-blue-900/80 mb-1">
-              <span>🕒</span> {item.jam}
+            <div className="flex items-center gap-2 text-white text-[12px] font-medium">
+              <Clock3 size={14} className="text-white" />
+              {item.jam}
             </div>
-            {/* Nama & Jabatan */}
-            <div className="flex items-start gap-2 pl-1">
-              <span className="text-lg">👤</span>
+
+            {/* Nama */}
+            <div className="flex gap-3 mt-1 items-start">
+
+              <Image
+  src="/images/icon1.png"
+  alt="Icon"
+  width={50}
+  height={50}
+  className="flex-shrink-0"
+/>
+
               <div>
-                <p className="text-sm font-bold leading-tight">{item.nama}</p>
-                <p className="text-xs text-blue-800/90">{item.jabatan}</p>
+                <h3 className="text-white text-[13px] font-semibold leading-4">
+                  {item.nama}
+                </h3>
+
+                <p className="text-white/90 text-[12px] mt-1">
+                  {item.jabatan}
+                </p>
               </div>
+
             </div>
+
           </div>
         ))}
       </div>
+
     </div>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import CatatanBox from "@/app/components/obatobatan/CatatanBox";
 
 export default function ObatObatanPage() {
   const daftarObat = [
@@ -14,7 +15,7 @@ export default function ObatObatanPage() {
       aturan: "1 tablet, 3-4 kali sehari bila diperlukan." 
     },
     { 
-      nama: "Diapet", gambar: "/images/diapet.png", tipe: "Kapsul", 
+      nama: "Diapet", gambar: "/images/diap0t.png", tipe: "Kapsul", 
       desc: "Diapet adalah obat herbal yang digunakan untuk membantu mengatasi diare, mengurangi frekuensi buang air besar, dan membantu memadatkan feses.", 
       aturan: "2 kapsul, 2 kali sehari setelah makan." 
     },
@@ -29,32 +30,37 @@ export default function ObatObatanPage() {
       aturan: "1 tablet, 3 kali sehari atau sesuai kebutuhan." 
     },
     { 
-      nama: "Betadine", gambar: "/images/betadine.png", tipe: "Cairan", 
+      nama: "Betadine", gambar: "/images/betadin.png", tipe: "Cairan", 
       desc: "Betadine adalah antiseptik yang mengandung povidone-iodine untuk mencegah dan mengatasi infeksi pada luka ringan, seperti luka lecet, luka gores, luka sayat kecil, dan luka bakar ringan.", 
       aturan: "Oleskan Betadine secukupnya pada area luka 1-3 kali sehari." 
     },
     { 
-      nama: "Salep 88", gambar: "/images/salep88.png", tipe: "Salep", 
+      nama: "Salep 88", gambar: "/images/salep.png", tipe: "Salep", 
       desc: "Salep 88 adalah obat luar yang digunakan untuk membantu mengatasi penyakit kulit akibat infeksi jamur.", 
       aturan: "Oleskan salep tipis-tipis pada bagian yang terkena 2-3 kali sehari." 
     },
     { 
-      nama: "Hansaplast", gambar: "/images/hansaplast.png", tipe: "Plester Luka", 
+      nama: "Hansaplast", gambar: "/images/hansaplas.png", tipe: "Plester Luka", 
       desc: "Digunakan untuk menutup luka kecil agar tetap bersih dan terlindungi.", 
       aturan: "Tempelkan pada luka yang sudah dibersihkan." 
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#E6F3FF] p-8">
+    <div
+  className="min-h-screen bg-cover bg-center bg-no-repeat px-8 pt-8 pb-0"
+  style={{
+    backgroundImage: "url('/images/background.png')",
+  }}
+>
       {/* Hero Section (Judul dikembalikan) */}
       <div className="flex items-center justify-between mb-12">
         <div>
           <h1 className="text-5xl font-bold text-[#0A405A] mb-4">Obat-obatan</h1>
-          <p className="text-gray-600 text-lg">Daftar obat yang tersedia di uks untuk membantu mengatasi keluhan ringan</p>
+          <p className="text-gray-700 mb-8 max-w-md text-sm md:text-base">Daftar obat yang tersedia di uks untuk membantu mengatasi keluhan ringan</p>
         </div>
         <div className="hidden md:block w-80 h-40 relative">
-          <Image src="/images/hero-obat.png" alt="Ilustrasi Obat" fill className="object-contain" />
+          <Image src="/images/obet.png" alt="Ilustrasi Obat" fill className="object-contain" />
         </div>
       </div>
 
@@ -84,6 +90,7 @@ export default function ObatObatanPage() {
           </div>
         ))}
       </div>
+      <CatatanBox />
     </div>
   );
 }
