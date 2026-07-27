@@ -65,22 +65,22 @@ export default function ObatObatanPage() {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat px-4 sm:px-8 pt-6 md:pt-8 pb-10 w-full overflow-x-hidden"
+      className="min-h-screen bg-cover bg-center bg-no-repeat px-4 sm:px-8 md:px-12 lg:px-16 pt-6 md:pt-10 pb-12 w-full overflow-x-hidden"
       style={{
         backgroundImage: "url('/images/background.png')",
       }}
     >
       {/* Hero Section */}
-      <div className="flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6">
 
-        {/* Sisi Kiri / Atas Header */}
-        <div className="text-center md:text-left flex flex-col items-center md:items-start w-full md:w-auto">
+        {/* Sisi Kiri (Judul & Deskripsi) */}
+        <div className="text-center md:text-left flex flex-col items-center md:items-start max-w-md">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0A405A] mb-3">
             Obat - Obatan
           </h1>
 
-          {/* Foto Obat Khusus Layar HP (Hanya tampil di HP, tersembunyi di Desktop) */}
-          <div className="flex md:hidden w-56 h-32 relative my-2 items-center justify-center">
+          {/* Gambar khusus HP */}
+          <div className="w-56 h-32 relative my-2 md:hidden">
             <Image
               src="/images/obet.png"
               alt="Ilustrasi Obat"
@@ -89,13 +89,13 @@ export default function ObatObatanPage() {
             />
           </div>
 
-          <p className="text-gray-700 max-w-md text-sm md:text-base leading-relaxed mt-1 md:mt-2">
+          <p className="text-gray-700 text-sm md:text-base leading-relaxed">
             Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan ringan.
           </p>
         </div>
 
-        {/* Foto Obat Khusus Layar Desktop (Sembunyi di HP, Tampil Kanan di Desktop) */}
-        <div className="hidden md:block w-80 h-44 relative shrink-0">
+        {/* Gambar khusus Desktop */}
+        <div className="hidden md:block w-72 lg:w-80 h-44 relative shrink-0">
           <Image
             src="/images/obet.png"
             alt="Ilustrasi Obat"
@@ -106,8 +106,8 @@ export default function ObatObatanPage() {
 
       </div>
 
-      {/* Grid Card Obat */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
+      {/* Grid Card Obat (Gap Diperbesar Jadi gap-6 md:gap-8 Supaya Tidak Berdempetan) */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12">
         {daftarObat.map((obat, idx) => (
           <div
             key={idx}
@@ -157,7 +157,9 @@ export default function ObatObatanPage() {
       </div>
 
       {/* Catatan Tambahan */}
-      <CatatanBox />
+      <div className="max-w-7xl mx-auto">
+        <CatatanBox />
+      </div>
     </div>
   );
 }
