@@ -133,8 +133,8 @@ export default function AdminJadwalPage() {
             </button>
           </div>
 
-          {/* Grid 5 Kolom Utama (Diperlebar dengan min-w-[1100px] dan gap-5) */}
-          <div className="grid grid-cols-5 gap-5 min-w-[1100px] w-full">
+          {/* Kontainer Jadwal */}
+          <div className="flex flex-col md:flex-row gap-6 md:overflow-x-auto md:pb-4 w-full">
             {[
               { hari: 'Senin', key: 'senin' },
               { hari: 'Selasa', key: 'selasa' },
@@ -144,14 +144,14 @@ export default function AdminJadwalPage() {
             ].map((item) => (
               <div
                 key={item.hari}
-                className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200"
+                className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200 w-full max-w-sm md:max-w-none md:w-[260px] md:min-w-[260px] md:shrink-0 mx-auto md:mx-0"
               >
                 {/* Header Hari */}
                 <div className="bg-[#0D2840] text-white text-center py-3 font-bold text-base flex items-center justify-center gap-2">
                   <span>📅</span> {item.hari}
                 </div>
 
-                {/* List Card Petugas (px-5 py-3.5 agar lebar ke samping tanpa terlalu tinggi) */}
+                {/* List Card Petugas */}
                 <div className="flex flex-col divide-y divide-blue-300/60 flex-1">
                   {jadwalData.map((slot, idx) => {
                     const petugas = slot[item.key as keyof SlotJadwal] as Petugas;
