@@ -52,13 +52,13 @@ export default function Navbar() {
         </Link>
         <Link 
           href="/pertolongan" 
-          className={`transition ${isActive('/pp') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
+          className={`transition ${isActive('/pertolongan') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
         >
           PP
         </Link>
         <Link 
           href="/obat2" 
-          className={`transition ${isActive('/obat_obatan') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
+          className={`transition ${isActive('/obat2') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
         >
           Obat-Obatan
         </Link>
