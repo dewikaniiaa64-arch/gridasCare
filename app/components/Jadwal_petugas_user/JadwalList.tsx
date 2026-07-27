@@ -1,15 +1,33 @@
 import JadwalCard from "./JadwalCard";
 
-export default function JadwalList() {
-  // Contoh data dummy sesuaikan dengan state/data aslimu
-  const hariList = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const hari = [
+  "Senin",
+  "Selasa",
+  "Rabu",
+  "Kamis",
+  "Jumat",
+];
 
+export default function JadwalList() {
   return (
-    // grid-cols-1 untuk HP, md:grid-cols-5 agar membagi rata 5 kolom di layar laptop
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start w-full">
-      {hariList.map((hari) => (
-        <JadwalCard key={hari} hari={hari} jadwal={[]} />
-      ))}
-    </div>
+    <section className="relative z-20">
+
+      <div
+        className="
+        grid
+        grid-cols-5
+        gap-6
+        justify-items-center
+        "
+      >
+        {hari.map((item) => (
+          <JadwalCard
+            key={item}
+            hari={item}
+          />
+        ))}
+      </div>
+
+    </section>
   );
 }

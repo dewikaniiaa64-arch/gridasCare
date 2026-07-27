@@ -2,30 +2,35 @@ import Image from "next/image";
 
 export default function HeroPertolongan() {
   return (
-    <section className="bg-gradient-to-r from-sky-100 to-white">
-      <div className="max-w-7xl mx-auto px-10 py-12 flex items-center justify-between">
+    <section className="bg-transparent">
+      <div className="max-w-7xl mx-auto px-8 py-6">
 
-        {/* Kiri */}
-        <div className="max-w-xl">
-          <h1 className="text-5xl font-bold text-slate-700">
-            Pertolongan Pertama
-          </h1>
+        <div className="flex items-center justify-between">
 
-          <p className="mt-4 text-gray-600 leading-7">
-            Informasi dan panduan mengenai pertolongan pertama untuk
-            berbagai kondisi darurat. Lakukan pertolongan dengan
-            tenang dan tetap lakukan keselamatan.
-          </p>
+          {/* Kiri */}
+          <div className="max-w-2xl">
+            <h1 className="text-5xl font-bold text-[#0A405A] mb-4">
+              Pertolongan Pertama
+            </h1>
+
+            <p className="text-gray-700 mb-8 max-w-md text-sm md:text-base">
+              Informasi dan panduan mengenai pertolongan pertama untuk berbagai 
+              kondisi darurat. 
+              Lakukan pertolongan dengan tenang dan tetap lakukan keselamatan.
+            </p>
+          </div>
+
+          {/* Kanan */}
+          <Image
+            src="/images/obat.png"
+            alt="First Aid"
+            width={260}
+            height={220}
+            className="object-contain"
+            priority
+          />
+
         </div>
-
-        {/* Kanan */}
-        <Image
-          src="/images/firstaid.png"
-          alt="First Aid"
-          width={300}
-          height={220}
-          priority
-        />
 
       </div>
     </section>

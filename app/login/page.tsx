@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -12,66 +13,103 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Logika login sederhana
     if (username === "admin" && password === "caregridas") {
-      router.push('/admin/jadwal');
+      router.push('/adm/dashboard');
     } else {
       alert("Username atau Password salah!");
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center">
-      {/* Background Image */}
-      <Image 
-        src="/images/bc.png" 
-        alt="Background" 
-        fill 
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      {/* 1. Background Image Utama */}
+      <Image
+        src="/images/login.png"
+        alt="Background"
+        fill
         priority
-        className="object-cover" 
+        className="object-cover"
       />
-      
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30"></div>
 
-      {/* Login Card */}
-      <div className="relative z-10 bg-white/90 p-8 rounded-3xl shadow-2xl w-full max-w-sm backdrop-blur-sm border border-white/20">
-        <div className="flex flex-col items-center mb-6">
-          <div className="text-red-500 text-4xl mb-2">🏥</div>
-          <h2 className="text-2xl font-bold text-[#0A405A]">gridas<span className="text-red-500">Care</span></h2>
-          <p className="text-sm text-gray-500">Login hanya admin</p>
+      {/* 2. Overlay Lapisan Transparan Sesuai Figma */}
+      <div className="absolute inset-0 bg-black/60"></div>
+
+      {/* 3. Icon Home di Pojok Kiri Atas */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 z-20 text-gray-500 hover:text-black transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.8}
+          stroke="currentColor"
+          className="w-8 h-8 md:w-10 md:h-10 drop-shadow-sm"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+          />
+        </svg>
+      </Link>
+
+
+      <div className="relative z-10 bg-cyan-600 p-10 md:p-12 rounded-[32px] shadow-2xl w-full max-w-sm md:max-w-md border-2 border-black/80 text-white flex flex-col items-center">
+
+        {/* Header Logo UKS & Nama App */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 md:w-20 md:h-20 mb-2 relative flex items-center justify-center">
+            <img
+              src="/images/pmi.png"
+              alt="Logo UKS"
+              className="w-full h-full object-contain drop-shadow"
+            />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
+            gridas<span className="text-red-500">Care</span>
+          </h2>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Form Login */}
+        <form onSubmit={handleLogin} className="w-full space-y-5 px-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input 
-              type="text" 
+            <label className="block text-white font-semibold text-lg mb-1.5 drop-shadow-sm">
+              Username
+            </label>
+            <input
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A405A] transition"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A405A] transition"
+              className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-400 shadow-inner"
               required
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="w-full bg-[#0A405A] text-white py-3 rounded-xl font-bold hover:bg-gray-800 transition shadow-lg mt-4"
-          >
-            Login
-          </button>
+          <div>
+            <label className="block text-white font-semibold text-lg mb-1.5 drop-shadow-sm">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-400 shadow-inner"
+              required
+            />
+          </div>
+
+          <div className="pt-4 flex justify-center">
+            <button
+              type="submit"
+              className="w-1/2 bg-[#0066FF] text-white py-2.5 rounded-full font-bold text-lg hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
+            >
+              Login
+            </button>
+          </div>
         </form>
+
       </div>
     </div>
   );
