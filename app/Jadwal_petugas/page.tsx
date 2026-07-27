@@ -3,23 +3,19 @@ import JadwalList from "@/app/components/Jadwal_petugas_user/JadwalList";
 
 export default function JadwalUserPage() {
   return (
-    // Gunakan gradasi linear dari biru muda ke biru yang sedikit lebih cerah sesuai desain
     <main
-  className="min-h-screen flex flex-col justify-between bg-cover bg-center bg-no-repeat"
+  className="min-h-screen bg-cover bg-no-repeat"
   style={{
-    backgroundImage: "url('/images/background.jpeg')",
+    backgroundImage: "url('/images/bc.png')",
   }}
 >
-      <div className="container mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
-        {/* HeroJadwal berisi judul dan gambar papan klip */}
-        <HeroJadwal />
-        
-        {/* JadwalList berisi grid kartu-kartu hari */}
-        <div className="mt-8">
-          <JadwalList />
-        </div>
-      </div>
+  <HeroJadwal />
 
-    </main>
+  <section className="-mt-2 relative z-10 pb-20">
+    <div className="max-w-[1450px] mx-auto px-6">
+      <JadwalList />
+    </div>
+  </section>
+</main>
   );
 }
