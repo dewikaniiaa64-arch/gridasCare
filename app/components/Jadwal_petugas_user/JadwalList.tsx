@@ -13,12 +13,7 @@ export default function JadwalList() {
     <section className="relative z-20">
 
       <div
-        className="
-        grid
-        grid-cols-5
-        gap-6
-        justify-items-center
-        "
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 justify-items-center"
       >
         {hari.map((item) => (
           <JadwalCard
