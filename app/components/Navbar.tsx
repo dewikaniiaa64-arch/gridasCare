@@ -20,134 +20,66 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="bg-sky-900 sticky top-0 z-50 px-6 md:px-10 py-3 text-white shadow-md w-full">
-      {/* Kontainer Utama */}
-      <div className="flex items-center w-full">
+    <>
+      <nav className="bg-sky-900 sticky top-0 z-[100] px-4 md:px-10 py-3 text-white shadow-md w-full">
+        <div className="flex items-center justify-between w-full">
 
-        {/* 1. Logo & Nama Instansi (Di Paling Kiri) */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="relative w-7 h-7">
-            <Image src="/images/pmi.png" alt="Logo PMI" fill className="object-contain" />
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="relative w-7 h-7">
+              <Image src="/images/pmi.png" alt="Logo PMI" fill className="object-contain" priority />
+            </div>
+            <div className="flex items-center text-lg font-bold tracking-tight">
+              <span className="text-white">gridas</span>
+              <span className="text-red-500">Care</span>
+            </div>
           </div>
-          <div className="flex items-center text-lg font-bold tracking-tight">
-            <span className="text-white">gridas</span>
-            <span className="text-red-500">Care</span>
+
+          {/* Menu Desktop */}
+          <div className="hidden md:flex items-center gap-8 text-xs font-medium">
+            <Link href="/" className={isActive('/') ? 'text-blue-400 font-semibold' : 'text-white'}>Beranda</Link>
+            <Link href="/Jadwal_petugas" className={isActive('/Jadwal_petugas') ? 'text-blue-400 font-semibold' : 'text-white'}>Jadwal PMR</Link>
+            <Link href="/user_siswasakit" className={isActive('/user_siswasakit') ? 'text-blue-400 font-semibold' : 'text-white'}>Siswa Sakit</Link>
+            <Link href="/pertolongan" className={isActive('/pertolongan') ? 'text-blue-400 font-semibold' : 'text-white'}>PP</Link>
+            <Link href="/obat2" className={isActive('/obat2') ? 'text-blue-400 font-semibold' : 'text-white'}>Obat-Obatan</Link>
           </div>
-        </div>
 
-        {/* 2. Menu Navigasi Desktop (Dipaksa ke kanan dengan ml-auto & gap lebih renggang) */}
-        <div className="hidden md:flex items-center gap-8 text-xs font-medium ml-auto mr-8">
-          <Link
-            href="/"
-            className={`transition ${isActive('/') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Beranda
-          </Link>
-          <Link
-            href="/Jadwal_petugas"
-            className={`transition ${isActive('/Jadwal_petugas') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Jadwal PMR
-          </Link>
-          <Link
-            href="/user_siswasakit"
-            className={`transition ${isActive('/user_siswasakit') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Siswa Sakit
-          </Link>
-          <Link
-            href="/pertolongan"
-            className={`transition ${isActive('/pertolongan') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            PP
-          </Link>
-          <Link
-            href="/obat2"
-            className={`transition ${isActive('/obat2') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Obat-Obatan
-          </Link>
-        </div>
+          {/* Tombol Admin & Hamburger Mobile */}
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden md:block bg-white text-blue-400 px-4 py-1.5 rounded-full font-bold text-xs">
+              Admin
+            </Link>
 
-        {/* 3. Tombol Admin di Paling Kanan */}
-        <div className="flex items-center gap-3 shrink-0 md:ml-0 ml-auto">
-          <Link
-            href="/login"
-            className="hidden md:block bg-white text-blue-400 px-4 py-1.5 rounded-full font-bold text-xs hover:bg-gray-100 transition shadow"
-          >
-            Admin
-          </Link>
-
-          {/* Tombol Hamburger khusus HP */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-white hover:bg-sky-800 focus:outline-none cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            {/* Tombol Garis Tiga (Mobile) */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 rounded-lg text-white hover:bg-sky-800 focus:outline-none relative z-[101] cursor-pointer"
             >
-              {isOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
         </div>
+      </nav>
 
-      </div>
-
-      {/* Menu Dropdown khusus Tampilan HP (Mobile) */}
+      {/* Menu Overlay Mobile (Fixed Layer Paling Atas Layar) */}
       {isOpen && (
-        <div className="md:hidden flex flex-col gap-3 mt-4 pt-3 border-t border-sky-800 text-xs font-medium w-full">
-          <Link
-            href="/"
-            onClick={() => setIsOpen(false)}
-            className={`transition py-1 ${isActive('/') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Beranda
-          </Link>
-          <Link
-            href="/Jadwal_petugas"
-            onClick={() => setIsOpen(false)}
-            className={`transition py-1 ${isActive('/Jadwal_petugas') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Jadwal PMR
-          </Link>
-          <Link
-            href="/user_siswasakit"
-            onClick={() => setIsOpen(false)}
-            className={`transition py-1 ${isActive('/user_siswasakit') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Siswa Sakit
-          </Link>
-          <Link
-            href="/pertolongan"
-            onClick={() => setIsOpen(false)}
-            className={`transition py-1 ${isActive('/pertolongan') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            PP
-          </Link>
-          <Link
-            href="/obat2"
-            onClick={() => setIsOpen(false)}
-            className={`transition py-1 ${isActive('/obat2') ? 'text-blue-400 font-semibold' : 'text-white hover:text-blue-300'}`}
-          >
-            Obat-Obatan
-          </Link>
-          <Link
-            href="/login"
-            onClick={() => setIsOpen(false)}
-            className="w-fit mt-1 bg-white text-blue-400 px-4 py-1.5 rounded-full font-bold text-xs hover:bg-gray-100 transition shadow"
-          >
-            Admin
-          </Link>
+        <div className="fixed inset-0 top-[52px] bg-sky-900/95 z-[99] md:hidden flex flex-col p-6 gap-4 text-sm font-medium backdrop-blur-sm">
+          <Link href="/" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Beranda</Link>
+          <Link href="/Jadwal_petugas" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Jadwal PMR</Link>
+          <Link href="/user_siswasakit" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Siswa Sakit</Link>
+          <Link href="/pertolongan" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">PP</Link>
+          <Link href="/obat2" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Obat-Obatan</Link>
+          <Link href="/login" onClick={() => setIsOpen(false)} className="mt-2 w-full text-center bg-white text-blue-400 py-2 rounded-full font-bold">Admin</Link>
         </div>
       )}
-    </nav>
+    </>
   );
 }
