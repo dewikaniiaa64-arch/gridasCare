@@ -22,14 +22,14 @@ export default function Home() {
       desc: "Laporkan kondisi siswa sakit dan lakukan pencatatan.",
       path: "/user_siswasakit",
       imageSrc: "/images/sakit.png",
-      lineColor: "#F52020",
+      lineColor: "#79A0B4",
     },
     {
       title: "Pertolongan Pertama",
       desc: "Panduan P3K untuk penanganan cedera dan keadaan darurat.",
       path: "/pertolongan",
       imageSrc: "/images/pertolongan.png",
-      lineColor: "#79A0B4",
+      lineColor: "#F52020",
     },
     {
       title: "Obat-Obatan",

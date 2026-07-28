@@ -36,7 +36,7 @@ export default function Navbar() {
           </div>
 
           {/* Menu Desktop */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-medium">
+          <div className="hidden md:flex items-center gap-5 text-sm font-medium ml-auto mr-8">
             <Link href="/" className={isActive('/') ? 'text-blue-400 font-semibold' : 'text-white'}>Beranda</Link>
             <Link href="/Jadwal_petugas" className={isActive('/Jadwal_petugas') ? 'text-blue-400 font-semibold' : 'text-white'}>Jadwal PMR</Link>
             <Link href="/user_siswasakit" className={isActive('/user_siswasakit') ? 'text-blue-400 font-semibold' : 'text-white'}>Siswa Sakit</Link>
