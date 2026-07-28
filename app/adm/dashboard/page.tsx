@@ -37,14 +37,14 @@ export default function SiswaSakitPage() {
   );
 
   return (
-    <div className="p-4 sm:p-10 bg-white min-h-full relative overflow-x-hidden">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#3b82f6] mb-6 sm:mb-8">
+    <div className="px-4 py-6 sm:p-10 bg-white min-h-full relative overflow-x-hidden">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#3b82f6] mb-6 sm:mb-8 text-center sm:text-left">
         Data Siswa Sakit
       </h1>
 
-      <div className="bg-gray-100 p-4 sm:p-6 rounded-2xl shadow-inner">
+      <div className="bg-gray-100 p-3 sm:p-6 rounded-2xl shadow-inner max-w-5xl mx-auto">
         {/* Baris Pencarian & Tombol Ekspor */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-3">
           <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,7 +70,7 @@ export default function SiswaSakitPage() {
 
           <button
             onClick={() => alert('Laporan berhasil diexport!')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-950 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow transition"
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-950 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow transition"
           >
             <svg width="24" height="24" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M31.7998 11.667C32.9199 11.667 33.4804 11.6668 33.9082 11.8848C34.2844 12.0765 34.5905 12.3825 34.7822 12.7588C35.0001 13.1865 35 13.7466 35 14.8662V25.9668C35 27.0864 35 27.6465 34.7822 28.0742C34.5905 28.4504 34.2844 28.7565 33.9082 28.9482C33.4804 29.1662 32.9199 29.167 31.7998 29.167H8.2002C7.08009 29.167 6.51962 29.1662 6.0918 28.9482C5.71563 28.7565 5.40946 28.4504 5.21777 28.0742C5.00001 27.6465 5 27.0864 5 25.9668V11.667H31.7998ZM17.499 22.0039L13.9912 18.9355L13.333 19.6875L12.6748 20.4404L16.8408 24.0859L17.5 24.6621L18.1582 24.0859L26.4912 16.7949L25.1748 15.2891L17.499 22.0039Z" fill="white"/>
@@ -81,9 +81,9 @@ export default function SiswaSakitPage() {
         </div>
 
         {/* Tabel Data dengan Pembungkus overflow-x-auto agar bisa digeser horizontal */}
-        <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+        <div className="hidden sm:block bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto rounded-xl">
+            <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr className="bg-[#bfdbfe] text-gray-800 text-sm font-bold border-b border-gray-200">
                   <th className="py-3 px-4 text-center w-16">No</th>
@@ -132,7 +132,57 @@ export default function SiswaSakitPage() {
           </div>
         </div>
       </div>
+      <div className="sm:hidden space-y-4 mt-4">
+  {filteredData.length > 0 ? (
+    filteredData.map((item, index) => (
+      <div
+        key={item.id}
+        className="bg-white rounded-2xl border border-gray-200 shadow p-4"
+      >
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-bold text-lg text-gray-800">
+              {item.nama}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {item.kelas}
+            </p>
+          </div>
 
+          <button
+            onClick={() => confirmDelete(item.id)}
+            className="text-red-500 text-xl"
+          >
+            🗑️
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+
+          <div>
+            <p className="text-xs text-gray-400">Keluhan</p>
+            <p className="font-medium">{item.keluhan}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400">Tanggal</p>
+            <p>{item.tanggal}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-400">Penanganan</p>
+            <p>{item.penanganan}</p>
+          </div>
+
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="text-center text-gray-500 py-8">
+      Tidak ada data.
+    </div>
+  )}
+</div>
       {/* Pop-up Modal Konfirmasi Hapus */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">

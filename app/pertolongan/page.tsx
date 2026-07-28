@@ -22,8 +22,8 @@ export default function Pertolongan() {
       
       <HeroPertolongan />
       <section className="pt-3 pb-4">
-  <div className="max-w-7xl mx-auto px-8">
-    <h2 className="text-2xl font-bold text-gray-800 mb-5">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-5 text-center lg:text-left">
       Panduan Cepat
     </h2>
 
@@ -128,7 +128,7 @@ onClick={() =>
 {selected && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-    <div className="bg-[#3A5A78] rounded-3xl w-[420px] p-8 relative shadow-2xl animate-[fadeIn_.3s_ease]">
+    <div className="bg-[#3A5A78] rounded-3xl w-[90%] max-w-[420px] p-5 sm:p-8 relative shadow-2xl">
 
       {/* Tombol Tutup */}
       <button
@@ -152,12 +152,12 @@ onClick={() =>
       </div>
 
       {/* Judul */}
-      <h2 className="text-center text-white text-3xl font-bold mt-6">
+      <h2 className="text-center text-white text-2xl sm:text-3xl font-bold mt-6">
         {selected.title}
       </h2>
 
       {/* Langkah */}
-      <ol className="text-white mt-8 space-y-3 list-decimal pl-6 leading-7">
+      <ol className="text-white mt-6 space-y-3 list-decimal pl-6 leading-6 text-sm sm:text-base">
 
         {selected.steps.map((step, index) => (
           <li key={index}>
