@@ -1,312 +1,157 @@
 'use client';
 
-import { useState } from 'react';
-
-interface Petugas {
-  nama: string;
-  jabatan: string;
-}
-
-interface SlotJadwal {
-  jam: string;
-  senin: Petugas;
-  selasa: Petugas;
-  rabu: Petugas;
-  kamis: Petugas;
-  jumat: Petugas;
-}
-
-const initialJadwalData: SlotJadwal[] = [
-  {
-    jam: '07:00-09:00',
-    senin: { nama: 'Syrin Alya Nafisa', jabatan: 'Wakil Ketua' },
-    selasa: { nama: 'Zhao Yu', jabatan: 'Bendahara' },
-    rabu: { nama: 'Rizka Adistiyanti J', jabatan: 'Anggota' },
-    kamis: { nama: 'Kirana Kalisha', jabatan: 'Anggota' },
-    jumat: { nama: 'Zaki Arya P', jabatan: 'Anggota' },
-  },
-  {
-    jam: '09:00-11:00',
-    senin: { nama: 'Nashylla Nur S', jabatan: 'Sekretaris' },
-    selasa: { nama: 'Cantika Khoerun N', jabatan: 'Keamanan' },
-    rabu: { nama: 'Anggraeni Ayu', jabatan: 'Anggota' },
-    kamis: { nama: 'Imelda Novianti', jabatan: 'Anggota' },
-    jumat: { nama: 'Zhang Linghe', jabatan: 'Anggota' },
-  },
-  {
-    jam: '11:00-13:00',
-    senin: { nama: 'Kania Dewi', jabatan: 'Ketua' },
-    selasa: { nama: 'Annisa Nabila V', jabatan: 'Anggota' },
-    rabu: { nama: 'Ira Maulida', jabatan: 'Anggota' },
-    kamis: { nama: 'Cici Wahyuningsih', jabatan: 'Anggota' },
-    jumat: { nama: 'Zhou Yiran', jabatan: 'Anggota' },
-  },
-  {
-    jam: '13:00-15:00',
-    senin: { nama: 'Aila Shinta', jabatan: 'Anggota' },
-    selasa: { nama: 'Sherya Demiya', jabatan: 'Anggota' },
-    rabu: { nama: 'Diyah Siti F', jabatan: 'Anggota' },
-    kamis: { nama: 'Riska Mufika', jabatan: 'Anggota' },
-    jumat: { nama: 'Lu Yixiao', jabatan: 'Anggota' },
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function AdminJadwalPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dataJadwal, setDataJadwal] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const [jadwalData, setJadwalData] = useState<SlotJadwal[]>(initialJadwalData);
-  const [formData, setFormData] = useState({
-    nama: '',
-    jabatan: 'Anggota',
-    hari: 'Senin',
-    jam: '07:00-09:00',
-  });
+  const fetchJadwal = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg('');
+      
+      const res = await fetch('http://localhost:1337/api/jadwal-piket-ukss');
+      
+      if (!res.ok) {
+        throw new Error(`Gagal mengambil data, Status: ${res.status}`);
+      }
 
-  const handleSimpan = (e: React.FormEvent) => {
-    e.preventDefault();
+      const result = await res.json();
+      const rawData = result.data || [];
 
-    if (!formData.nama.trim()) {
-      alert('Nama petugas wajib diisi!');
-      return;
-    }
+      // Urutan hari untuk referensi sorting
+      const urutanHari: { [key: string]: number } = {
+        'Senin': 1,
+        'Selasa': 2,
+        'Rabu': 3,
+        'Kamis': 4,
+        "Jum'at": 5,
+        'Jumat': 5,
+      };
 
-    const dayKeyMap: Record<string, keyof Omit<SlotJadwal, 'jam'>> = {
-      Senin: 'senin',
-      Selasa: 'selasa',
-      Rabu: 'rabu',
-      Kamis: 'kamis',
-      "Jum'at": 'jumat',
-      Jumat: 'jumat',
-    };
+      // Fungsi sorting berdasarkan Hari lalu berdasarkan Jam_Mulai
+      const sortedData = rawData.sort((a: any, b: any) => {
+        const hariA = urutanHari[a.Hari] || 99;
+        const hariB = urutanHari[b.Hari] || 99;
 
-    const targetKey = dayKeyMap[formData.hari];
-
-    setJadwalData((prevJadwal) =>
-      prevJadwal.map((slot) => {
-        if (slot.jam === formData.jam) {
-          return {
-            ...slot,
-            [targetKey]: {
-              nama: formData.nama,
-              jabatan: formData.jabatan || 'Anggota',
-            },
-          };
+        if (hariA !== hariB) {
+          return hariA - hariB;
         }
-        return slot;
-      })
-    );
 
-    alert('Jadwal petugas berhasil diperbarui!');
-    setIsModalOpen(false);
+        // Jika hari sama, urutkan berdasarkan Jam_Mulai
+        const jamA = a.Jam_Mulai || '';
+        const jamB = b.Jam_Mulai || '';
+        return jamA.localeCompare(jamB);
+      });
 
-    setFormData((prev) => ({ ...prev, nama: '' }));
+      setDataJadwal(sortedData);
+    } catch (error: any) {
+      console.error('Error fetching jadwal:', error);
+      setErrorMsg(error.message || 'Terjadi kesalahan koneksi ke server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJadwal();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+      try {
+        const res = await fetch(`http://localhost:1337/api/jadwal-piket-ukss/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (res.ok) {
+          fetchJadwal();
+        } else {
+          alert('Gagal menghapus data dari server.');
+        }
+      } catch (error) {
+        console.error('Terjadi kesalahan saat menghapus:', error);
+      }
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-inter">
-      <main className="flex-1 p-8 bg-white overflow-x-auto">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold text-[#51A2FF]">
-              Jadwal Petugas
-            </h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#0D2840] text-white px-6 py-2.5 rounded-full font-semibold flex items-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
-              </svg>
-              Edit Petugas
-            </button>
-          </div>
+    <div className="w-full">
+      <h1 className="text-3xl font-bold text-[#3B91FF] mb-6">
+        Jadwal Petugas
+      </h1>
 
-          {/* Kontainer Jadwal */}
-          <div className="flex flex-col md:flex-row gap-6 md:overflow-x-auto md:pb-4 w-full">
-            {[
-              { hari: 'Senin', key: 'senin' },
-              { hari: 'Selasa', key: 'selasa' },
-              { hari: 'Rabu', key: 'rabu' },
-              { hari: 'Kamis', key: 'kamis' },
-              { hari: "Jum'at", key: 'jumat' },
-            ].map((item) => (
-              <div
-                key={item.hari}
-                className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200 w-full max-w-sm md:max-w-none md:w-[260px] md:min-w-[260px] md:shrink-0 mx-auto md:mx-0"
-              >
-                {/* Header Hari */}
-                <div className="bg-[#0D2840] text-white text-center py-3 font-bold text-base flex items-center justify-center gap-2">
-                  <span>📅</span> {item.hari}
-                </div>
-
-                {/* List Card Petugas */}
-                <div className="flex flex-col divide-y divide-blue-300/60 flex-1">
-                  {jadwalData.map((slot, idx) => {
-                    const petugas = slot[item.key as keyof SlotJadwal] as Petugas;
-                    return (
-                      <div
-                        key={idx}
-                        className="px-5 py-3.5 flex flex-col justify-between hover:bg-blue-300/40 transition-colors"
-                      >
-                        <div>
-                          {/* Jam Jaga */}
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 mb-2">
-                            <span>🕒</span> {slot.jam}
-                          </div>
-
-                          {/* Profil Petugas */}
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs shrink-0 shadow-xs">
-                              👤
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm text-slate-900 leading-snug truncate">
-                                {petugas.nama}
-                              </p>
-                              <p className="text-xs text-slate-700 font-medium mt-0.5">
-                                {petugas.jabatan}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="bg-[#EAEFF5] rounded-3xl p-6 shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold text-[#0D2840]">Daftar Petugas Piket</h2>
         </div>
-      </main>
 
-      {/* Modal Edit Petugas */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative border border-gray-100">
-            {/* Tombol Back */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="text-sky-500 hover:text-sky-700 mb-2 inline-block cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
-              </svg>
-            </button>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#93C5FD] text-[#0D2840] text-xs font-bold uppercase tracking-wider border-b border-blue-200">
+                <th className="px-4 py-3.5 text-center w-12">No</th>
+                <th className="px-4 py-3.5">Hari</th>
+                <th className="px-4 py-3.5">Nama Petugas</th>
+                <th className="px-4 py-3.5">Jam Piket</th>
+                <th className="px-4 py-3.5 text-center w-16">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                    Memuat data jadwal dari database...
+                  </td>
+                </tr>
+              ) : errorMsg ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-red-500">
+                    {errorMsg}
+                  </td>
+                </tr>
+              ) : dataJadwal.length > 0 ? (
+                dataJadwal.map((item: any, index: number) => {
+                  const jamMulai = item.Jam_Mulai ? item.Jam_Mulai.slice(0, 5) : '';
+                  const jamSelesai = item.Jam_Selesai ? item.Jam_Selesai.slice(0, 5) : '';
+                  const jamPiket = jamMulai && jamSelesai ? `${jamMulai} - ${jamSelesai}` : '-';
 
-            <h3 className="text-center text-sky-500 font-bold text-lg mb-6">
-              Jadwal Petugas
-            </h3>
-
-            {/* Form Input */}
-            <form onSubmit={handleSimpan} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Nama:
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nama"
-                  value={formData.nama}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nama: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 text-black"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Jabatan:
-                </label>
-                <select
-                  value={formData.jabatan}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jabatan: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
-                >
-                  <option value="Ketua">Ketua</option>
-                  <option value="Wakil Ketua">Wakil Ketua</option>
-                  <option value="Sekretaris">Sekretaris</option>
-                  <option value="Bendahara">Bendahara</option>
-                  <option value="Keamanan">Keamanan</option>
-                  <option value="Anggota">Anggota</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Hari:
-                </label>
-                <select
-                  value={formData.hari}
-                  onChange={(e) =>
-                    setFormData({ ...formData, hari: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
-                >
-                  <option value="Senin">Senin</option>
-                  <option value="Selasa">Selasa</option>
-                  <option value="Rabu">Rabu</option>
-                  <option value="Kamis">Kamis</option>
-                  <option value="Jum'at">Jum'at</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Jam:
-                </label>
-                <select
-                  value={formData.jam}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jam: e.target.value })
-                  }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
-                >
-                  <option value="07:00-09:00">07:00-09:00</option>
-                  <option value="09:00-11:00">09:00-11:00</option>
-                  <option value="11:00-13:00">11:00-13:00</option>
-                  <option value="13:00-15:00">13:00-15:00</option>
-                </select>
-              </div>
-
-              <div className="pt-2 flex justify-center">
-                <button
-                  type="submit"
-                  className="bg-[#2563EB] text-white font-bold py-2 px-8 rounded-full text-xs hover:bg-blue-700 transition shadow-md active:scale-95 cursor-pointer"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
+                  return (
+                    <tr key={item.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 text-center font-medium">{index + 1}</td>
+                      <td className="px-4 py-3 font-semibold">{item.Hari || '-'}</td>
+                      <td className="px-4 py-3">
+                        {item.Nama || '-'}{' '}
+                        {item.Jabatan && (
+                          <span className="text-gray-400 font-normal">({item.Jabatan})</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">{jamPiket}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-500 hover:text-red-700 transition p-1"
+                          title="Hapus"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                    Belum ada data jadwal petugas.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }

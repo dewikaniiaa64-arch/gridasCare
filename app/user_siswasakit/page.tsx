@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
 export default function DataSiswaSakit() {
   const [formData, setFormData] = useState({
     tanggal: "",
@@ -10,6 +12,7 @@ export default function DataSiswaSakit() {
     keluhan: "",
     penanganan: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Data kelas
   const tingkat = ["X", "XI", "XII"];
@@ -27,10 +30,53 @@ export default function DataSiswaSakit() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
-    alert("Data berhasil disimpan!");
+
+    if (!formData.tanggal || !formData.nama || !formData.kelas) {
+      alert("Mohon lengkapi Tanggal, Nama, dan Kelas!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        data: {
+          Tanggal: formData.tanggal,
+          Nama: formData.nama,
+          Kelas: formData.kelas,
+          Keluhan: formData.keluhan,
+          Penanganan: formData.penanganan,
+        },
+      };
+
+      const response = await fetch(`${STRAPI_URL}/api/siswa-sakits`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gagal menyimpan data ke server Strapi");
+      }
+
+      alert("Data siswa sakit berhasil disimpan!");
+      setFormData({
+        tanggal: "",
+        nama: "",
+        kelas: "",
+        keluhan: "",
+        penanganan: "",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Terjadi kesalahan saat menyimpan data.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,13 +99,12 @@ export default function DataSiswaSakit() {
               <label className="block text-lg font-semibold mb-2">
                 Tanggal
               </label>
-
               <input
                 type="date"
                 name="tanggal"
                 value={formData.tanggal}
                 onChange={handleChange}
-                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
             </div>
 
@@ -68,14 +113,13 @@ export default function DataSiswaSakit() {
               <label className="block text-lg font-semibold mb-2">
                 Nama
               </label>
-
               <input
                 type="text"
                 name="nama"
                 placeholder="Masukkan nama"
                 value={formData.nama}
                 onChange={handleChange}
-                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
             </div>
 
@@ -84,15 +128,13 @@ export default function DataSiswaSakit() {
               <label className="block text-lg font-semibold mb-2">
                 Kelas
               </label>
-
               <select
                 name="kelas"
                 value={formData.kelas}
                 onChange={handleChange}
-                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 text-black"
               >
                 <option value="">Pilih Kelas</option>
-
                 {tingkat.flatMap((t) =>
                   jurusan.flatMap((j) =>
                     nomorKelas.map((n) => (
@@ -116,14 +158,13 @@ export default function DataSiswaSakit() {
               <label className="block text-lg font-semibold mb-2">
                 Keluhan
               </label>
-
               <textarea
                 name="keluhan"
                 rows={5}
                 value={formData.keluhan}
                 onChange={handleChange}
                 placeholder="Masukkan keluhan siswa..."
-                className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none bg-white outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
             </div>
 
@@ -132,14 +173,13 @@ export default function DataSiswaSakit() {
               <label className="block text-lg font-semibold mb-2">
                 Penanganan
               </label>
-
               <textarea
                 name="penanganan"
                 rows={5}
                 value={formData.penanganan}
                 onChange={handleChange}
                 placeholder="Masukkan penanganan..."
-                className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none bg-white outline-none focus:ring-2 focus:ring-blue-500 text-black"
               />
             </div>
           </div>
@@ -148,9 +188,10 @@ export default function DataSiswaSakit() {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-10 py-2.5 rounded-full shadow-md transition"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-10 py-2.5 rounded-full shadow-md transition cursor-pointer disabled:opacity-50"
             >
-              Simpan
+              {isSubmitting ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>
