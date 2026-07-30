@@ -264,7 +264,7 @@ export default function AdminSiswaSakitPage() {
                 onClick={() => setShowExportModal(false)}
                 className="flex items-center gap-1 text-sm font-semibold hover:text-gray-300 transition cursor-pointer"
               >
-                Close ✕
+                Close
               </button>
             </div>
 
