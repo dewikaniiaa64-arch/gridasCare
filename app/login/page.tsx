@@ -31,14 +31,11 @@ export default function LoginPage() {
         className="object-cover"
       />
 
-      {/* 2. Overlay Hitam Dibuat Lebih Tipis (Latar Belakang Lebih Terlihat Clear) */}
       <div className="absolute inset-0 bg-black/25"></div>
-
-      {/* 3. Icon Home di Pojok Kiri Atas */}
       <Link
         href="/"
         aria-label="Kembali ke Beranda"
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 text-white hover:text-gray-200 transition-colors bg-black/40 p-2 rounded-full shadow-md sm:bg-transparent sm:p-0"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 text-black/50 hover:text-black/60 transition-colors p-1"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -46,7 +43,7 @@ export default function LoginPage() {
           viewBox="0 0 24 24"
           strokeWidth={2}
           stroke="currentColor"
-          className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 drop-shadow-md"
+          className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9"
         >
           <path
             strokeLinecap="round"
@@ -106,7 +103,7 @@ export default function LoginPage() {
           <div className="pt-2 flex justify-center">
             <button
               type="submit"
-              className="w-3/5 sm:w-1/2 bg-[#0066FF] text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
+              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
             >
               Login
             </button>
