@@ -36,7 +36,7 @@ export default function Navbar() {
           </div>
 
           {/* Menu Desktop */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-medium">
+          <div className="hidden md:flex items-center gap-4 text-xs font-medium ml-auto mr-8">
             <Link href="/" className={isActive('/') ? 'text-blue-400 font-semibold' : 'text-white'}>Beranda</Link>
             <Link href="/Jadwal_petugas" className={isActive('/Jadwal_petugas') ? 'text-blue-400 font-semibold' : 'text-white'}>Jadwal PMR</Link>
             <Link href="/user_siswasakit" className={isActive('/user_siswasakit') ? 'text-blue-400 font-semibold' : 'text-white'}>Siswa Sakit</Link>
@@ -69,7 +69,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Menu Overlay Mobile (Fixed Layer Paling Atas Layar) */}
+      {/* Menu Overlay Mobile (Fixed Layer Paling Atas) */}
       {isOpen && (
         <div className="fixed inset-0 top-[52px] bg-sky-900/95 z-[99] md:hidden flex flex-col p-6 gap-4 text-sm font-medium backdrop-blur-sm">
           <Link href="/" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Beranda</Link>
