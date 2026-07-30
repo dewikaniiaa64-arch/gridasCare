@@ -69,7 +69,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Menu Overlay Mobile (Fixed Layer Paling Atas Layar) */}
+      {/* Menu Overlay Mobile (Fixed Layer Paling Atas) */}
       {isOpen && (
         <div className="fixed inset-0 top-[52px] bg-sky-900/95 z-[99] md:hidden flex flex-col p-6 gap-4 text-sm font-medium backdrop-blur-sm">
           <Link href="/" onClick={() => setIsOpen(false)} className="py-2 border-b border-sky-800">Beranda</Link>
