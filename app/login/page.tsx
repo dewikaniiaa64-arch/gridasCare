@@ -100,7 +100,7 @@ export default function LoginPage() {
           <div className="pt-2 flex justify-center">
             <button
               type="submit"
-              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
+              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-400 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
             >
               Login
             </button>

@@ -189,7 +189,7 @@ export default function DataSiswaSakit() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-10 py-2.5 rounded-full shadow-md transition cursor-pointer disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-400 text-white text-sm font-semibold px-10 py-2.5 rounded-full shadow-md transition cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Menyimpan..." : "Simpan"}
             </button>
