@@ -82,7 +82,7 @@ export default function Home() {
 
             <Link
               href="#menu-section"
-              className="bg-blue-600 text-white px-8 py-3 rounded-full hover:bg-gray-800 transition shadow-lg inline-block text-sm sm:text-base font-semibold mt-2"
+              className="bg-blue-600 text-white px-8 py-3 rounded-full hover:bg-blue-400 transition shadow-lg inline-block text-sm sm:text-base font-semibold mt-2"
             >
               Lihat Informasi →
             </Link>
