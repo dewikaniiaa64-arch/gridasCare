@@ -78,8 +78,12 @@ const handleSave = async () => {
       }
     );
 
+    const result = await res.json();
+    console.log(result);
+
     if (!res.ok) {
-      throw new Error("Gagal menyimpan");
+      alert(JSON.stringify(result, null, 2));
+      return;
     }
 
     alert("Data berhasil disimpan!");
@@ -96,6 +100,7 @@ const handleSave = async () => {
     fetchJadwal();
 
   } catch (error) {
+    console.log(error);
     alert("Gagal menyimpan data");
   }
 };
