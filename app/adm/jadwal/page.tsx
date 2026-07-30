@@ -7,6 +7,12 @@ export default function AdminJadwalPage() {
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [formData, setFormData] = useState({
+  Nama: "",
+  Jabatan: "",
+  Hari: "",
+  Jam: "",
+});
 
   const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at"];
 
@@ -31,6 +37,68 @@ export default function AdminJadwalPage() {
       setLoading(false);
     }
   };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Hapus data?')) return;
+
+    try {
+      await fetch(
+        `http://localhost:1337/api/jadwal-piket-ukss/${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      fetchJadwal();
+    } catch (error) {
+      alert('Gagal menghapus');
+    }
+  };
+
+const handleSave = async () => {
+  try {
+    const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
+
+    const res = await fetch(
+      "http://localhost:1337/api/jadwal-piket-ukss",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: {
+            Nama: formData.Nama,
+            Jabatan: formData.Jabatan,
+            Hari: formData.Hari,
+            Jam_Mulai: jamMulai,
+            Jam_Selesai: jamSelesai,
+          },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Gagal menyimpan");
+    }
+
+    alert("Data berhasil disimpan!");
+
+    setOpenModal(false);
+
+    setFormData({
+      Nama: "",
+      Jabatan: "",
+      Hari: "",
+      Jam: "",
+    });
+
+    fetchJadwal();
+
+  } catch (error) {
+    alert("Gagal menyimpan data");
+  }
+};
 
   return (
     <div className="w-full">
@@ -264,7 +332,7 @@ export default function AdminJadwalPage() {
       {/* Tombol kembali */}
       <button
         onClick={() => setOpenModal(false)}
-        className="absolute top-8 left-8 text-[#2563EB]"
+        className="absolute top-8 left-12 text-[#2563EB]"
       >
        <IoArrowBack className="text-[38px]" />
       </button>
@@ -281,10 +349,17 @@ export default function AdminJadwalPage() {
           </label>
 
           <input
-            type="text"
-            placeholder="Nama"
-            className="w-full border rounded-lg p-3"
-          />
+  type="text"
+  placeholder="Nama"
+  value={formData.Nama}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      Nama: e.target.value,
+    })
+  }
+  className="w-full border rounded-lg p-3"
+/>
         </div>
 
         <div>
@@ -292,12 +367,21 @@ export default function AdminJadwalPage() {
             Jabatan
           </label>
 
-          <select className="w-full border rounded-lg p-3">
-            <option>Pilih Jabatan</option>
-            <option>Ketua</option>
-            <option>Wakil</option>
-            <option>Anggota</option>
-          </select>
+         <select
+  value={formData.Jabatan}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      Jabatan: e.target.value,
+    })
+  }
+  className="w-full border rounded-lg p-3"
+>
+  <option value="">Pilih Jabatan</option>
+  <option value="Ketua">Ketua</option>
+  <option value="Wakil">Wakil</option>
+  <option value="Anggota">Anggota</option>
+</select>
         </div>
 
         <div>
@@ -305,13 +389,23 @@ export default function AdminJadwalPage() {
             Hari
           </label>
 
-          <select className="w-full border rounded-lg p-3">
-            <option>Senin</option>
-            <option>Selasa</option>
-            <option>Rabu</option>
-            <option>Kamis</option>
-            <option>Jum'at</option>
-          </select>
+          <select
+  value={formData.Hari}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      Hari: e.target.value,
+    })
+  }
+  className="w-full border rounded-lg p-3"
+>
+  <option value="">Pilih Hari</option>
+  <option value="Senin">Senin</option>
+  <option value="Selasa">Selasa</option>
+  <option value="Rabu">Rabu</option>
+  <option value="Kamis">Kamis</option>
+  <option value="Jum'at">Jum'at</option>
+</select>
         </div>
 
         <div>
@@ -319,18 +413,28 @@ export default function AdminJadwalPage() {
             Jam
           </label>
 
-          <select className="w-full border rounded-lg p-3">
-            <option>07:00 - 09:00</option>
-            <option>09:00 - 11:00</option>
-            <option>11:00 - 13:00</option>
-            <option>13:00 - 15:00</option>
-          </select>
+          <select
+  value={formData.Jam}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      Jam: e.target.value,
+    })
+  }
+  className="w-full border rounded-lg p-3"
+>
+  <option value="">Pilih Jam</option>
+  <option value="07:00 - 09:00">07:00 - 09:00</option>
+  <option value="09:00 - 11:00">09:00 - 11:00</option>
+  <option value="11:00 - 13:00">11:00 - 13:00</option>
+  <option value="13:00 - 15:00">13:00 - 15:00</option>
+</select>
         </div>
 
         <div className="flex justify-center pt-4">
 
           <button
-            onClick={() => setOpenModal(false)}
+            onClick={handleSave}
             className="bg-[#2563EB] text-white px-12 py-3 rounded-full font-bold hover:bg-blue-700"
           >
             Simpan
