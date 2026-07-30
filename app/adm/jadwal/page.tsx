@@ -193,14 +193,6 @@ export default function AdminJadwalPage() {
       {attr.Jabatan}
     </p>
   </div>
-
-  <button
-    onClick={() => handleDelete(item.id)}
-    className="text-red-500"
-  >
-    🗑️
-  </button>
-
                           </div>
                         </div>
                       );
