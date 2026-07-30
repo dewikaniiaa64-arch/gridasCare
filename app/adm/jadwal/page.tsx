@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { IoArrowBack } from "react-icons/io5"
 
 export default function AdminJadwalPage() {
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
 
   const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at"];
 
@@ -56,7 +58,10 @@ export default function AdminJadwalPage() {
           Jadwal Petugas
         </h1>
 
-       <button className="bg-[#182232] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#243246] transition">
+      <button
+  onClick={() => setOpenModal(true)}
+  className="bg-[#182232] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#243246] transition"
+>
   <svg
     width="30"
     height="30"
@@ -268,7 +273,94 @@ export default function AdminJadwalPage() {
         </div>
 
       </div>
+{openModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
 
+    <div className="relative bg-white w-[500px] rounded-[28px] p-8 shadow-2xl">
+
+      {/* Tombol kembali */}
+      <button
+        onClick={() => setOpenModal(false)}
+        className="absolute top-8 left-8 text-[#2563EB]"
+      >
+       <IoArrowBack className="text-[38px]" />
+      </button>
+
+      <h2 className="text-center text-3xl font-bold text-[#3B91FF] mt-6 mb-8">
+        Jadwal Petugas
+      </h2>
+
+      <div className="space-y-5">
+
+        <div>
+          <label className="font-semibold block mb-2">
+            Nama
+          </label>
+
+          <input
+            type="text"
+            placeholder="Nama"
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
+
+        <div>
+          <label className="font-semibold block mb-2">
+            Jabatan
+          </label>
+
+          <select className="w-full border rounded-lg p-3">
+            <option>Pilih Jabatan</option>
+            <option>Ketua</option>
+            <option>Wakil</option>
+            <option>Anggota</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="font-semibold block mb-2">
+            Hari
+          </label>
+
+          <select className="w-full border rounded-lg p-3">
+            <option>Senin</option>
+            <option>Selasa</option>
+            <option>Rabu</option>
+            <option>Kamis</option>
+            <option>Jum'at</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="font-semibold block mb-2">
+            Jam
+          </label>
+
+          <select className="w-full border rounded-lg p-3">
+            <option>07:00 - 09:00</option>
+            <option>09:00 - 11:00</option>
+            <option>11:00 - 13:00</option>
+            <option>13:00 - 15:00</option>
+          </select>
+        </div>
+
+        <div className="flex justify-center pt-4">
+
+          <button
+            onClick={() => setOpenModal(false)}
+            className="bg-[#2563EB] text-white px-12 py-3 rounded-full font-bold hover:bg-blue-700"
+          >
+            Simpan
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
     </div>
   );
 }
