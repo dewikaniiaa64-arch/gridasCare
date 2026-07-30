@@ -56,9 +56,37 @@ export default function AdminJadwalPage() {
           Jadwal Petugas
         </h1>
 
-        <button className="bg-[#182232] text-white px-5 py-3 rounded-xl font-semibold">
-          + Edit Petugas
-        </button>
+       <button className="bg-[#182232] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#243246] transition">
+  <svg
+    width="30"
+    height="30"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle
+      cx="15"
+      cy="15"
+      r="11.25"
+      stroke="white"
+      strokeWidth="2"
+    />
+    <path
+      d="M15 18.75L15 11.25"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="square"
+    />
+    <path
+      d="M18.75 15L11.25 15"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="square"
+    />
+  </svg>
+
+  <span>Edit Petugas</span>
+</button>
       </div>
 
       {/* Container */}
