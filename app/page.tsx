@@ -29,7 +29,7 @@ export default function Home() {
       desc: "Panduan P3K untuk penanganan cedera dan keadaan darurat.",
       path: "/pertolongan",
       imageSrc: "/images/pertolongan.png",
-      lineColor: "#F52020",
+      lineColor: "#79A0B4",
     },
     {
       title: "Obat-Obatan",
