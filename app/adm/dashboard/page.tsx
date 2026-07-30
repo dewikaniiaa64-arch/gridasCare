@@ -110,7 +110,7 @@ export default function AdminSiswaSakitPage() {
           </button>
         </div>
 
-        <div className="hidden md:block bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
+        <div className="hidden lg:block bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
   <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#93C5FD] text-[#0D2840] text-xs font-bold uppercase tracking-wider border-b border-blue-200">
@@ -162,7 +162,7 @@ export default function AdminSiswaSakitPage() {
             </tbody>
           </table>
         </div>
-        <div className="md:hidden space-y-4 mt-5">
+        <div className="lg:hidden space-y-4 mt-5">
   {loading ? (
     <div className="text-center py-6">
       Memuat data...
