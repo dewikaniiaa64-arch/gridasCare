@@ -9,7 +9,7 @@ export default function PertolonganPage() {
   const [daftarPertolongan, setDaftarPertolongan] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [selected, setSelected] = useState<{
     title: string;
     image: string;
@@ -20,7 +20,7 @@ export default function PertolonganPage() {
     const fetchPertolonganFromStrapi = async () => {
       try {
         const response = await fetch(`http://localhost:1337/api/pertolongan-pertamas?populate=*`);
-        
+
         if (!response.ok) {
           throw new Error('Gagal mengambil data dari server Strapi');
         }
@@ -72,7 +72,7 @@ export default function PertolonganPage() {
 
       <section className="pt-3 pb-4">
         <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-5">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-5">
             Panduan Cepat
           </h2>
 

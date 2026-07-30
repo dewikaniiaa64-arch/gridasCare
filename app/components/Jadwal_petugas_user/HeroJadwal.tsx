@@ -9,11 +9,11 @@ export default function HeroJadwal() {
         {/* Tulisan */}
         <div className="z-10 text-center lg:text-left">
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0A405A] mb-3">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-sky-950 mb-3">
             Jadwal Piket UKS
           </h1>
 
-          <p className="text-gray-700 max-w-md text-sm md:text-base mx-auto lg:mx-0">
+          <p className="text-sky-950 max-w-md text-sm md:text-base mx-auto lg:mx-0">
             Berikut jadwal piket petugas setiap harinya
           </p>
 

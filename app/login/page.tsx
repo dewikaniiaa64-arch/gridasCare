@@ -22,7 +22,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      {/* 1. Background Image Utama */}
       <Image
         src="/images/login.png"
         alt="Background"
@@ -53,10 +52,8 @@ export default function LoginPage() {
         </svg>
       </Link>
 
-      {/* 4. Form Box Container (Ukuran Diperkecil & Lebih Compact) */}
-      <div className="relative z-10 bg-cyan-600/95 p-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[300px] sm:max-w-sm border border-black/60 text-white flex flex-col items-center">
+      <div className="relative z-10 bg-cyan-600/95 py-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[300px] sm:max-w-sm border border-black/60 text-white flex flex-col items-center">
 
-        {/* Header Logo UKS & Nama App */}
         <div className="flex flex-col items-center mb-4 sm:mb-6">
           <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 relative flex items-center justify-center">
             <img
