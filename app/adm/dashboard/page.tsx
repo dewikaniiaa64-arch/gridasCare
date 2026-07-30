@@ -110,8 +110,8 @@ export default function AdminSiswaSakitPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
-          <table className="w-full text-left border-collapse">
+        <div className="hidden md:block bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
+  <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#93C5FD] text-[#0D2840] text-xs font-bold uppercase tracking-wider border-b border-blue-200">
                 <th className="px-4 py-3.5 text-center w-12">No</th>
@@ -162,6 +162,60 @@ export default function AdminSiswaSakitPage() {
             </tbody>
           </table>
         </div>
+        <div className="md:hidden space-y-4 mt-5">
+  {loading ? (
+    <div className="text-center py-6">
+      Memuat data...
+    </div>
+  ) : filteredData.length > 0 ? (
+    filteredData.map((item) => (
+      <div
+        key={item.id}
+        className="bg-white rounded-2xl shadow border border-gray-200 p-4"
+      >
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              {item.nama}
+            </h2>
+
+            <p className="text-blue-500 text-sm">
+              {item.kelas}
+            </p>
+          </div>
+
+          <button
+            onClick={() => handleDelete(item.id, item.documentId)}
+            className="text-red-500 text-xl"
+          >
+            🗑️
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm">
+          <div>
+            <p className="text-gray-400">Keluhan</p>
+            <p>{item.keluhan}</p>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Tanggal</p>
+            <p>{item.tanggal}</p>
+          </div>
+
+          <div>
+            <p className="text-gray-400">Penanganan</p>
+            <p>{item.penanganan}</p>
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="text-center py-6 text-gray-400">
+      Belum ada data siswa sakit.
+    </div>
+  )}
+</div>
       </div>
     </div>
   );
