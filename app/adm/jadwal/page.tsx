@@ -30,23 +30,6 @@ export default function AdminJadwalPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Hapus data?')) return;
-
-    try {
-      await fetch(
-        `http://localhost:1337/api/jadwal-piket-ukss/${id}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      fetchJadwal();
-    } catch (error) {
-      alert('Gagal menghapus');
-    }
-  };
-
   return (
     <div className="w-full">
 
@@ -145,7 +128,7 @@ export default function AdminJadwalPage() {
                       return (
                         <div
                           key={item.id}
-                          className="p-4 border-b bg-[#DFF1FF]"
+                          className="p-4 border-b bg-blue-300"
                         >
 
                           <div className="flex items-center gap-2 text-sm mb-3">
@@ -194,12 +177,7 @@ export default function AdminJadwalPage() {
     </p>
   </div>
 
-  <button
-    onClick={() => handleDelete(item.id)}
-    className="text-red-500"
-  >
-    🗑️
-  </button>
+  
 
                           </div>
                         </div>
