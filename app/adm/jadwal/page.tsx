@@ -29,7 +29,7 @@ export default function AdminJadwalPage() {
       if (!res.ok) throw new Error();
 
       const result = await res.json();
-
+      console.log(result.data);
       setDataJadwal(result.data || []);
     } catch (error) {
       console.log('Backend belum tersambung');
