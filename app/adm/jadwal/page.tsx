@@ -79,18 +79,24 @@ export default function AdminJadwalPage() {
             });
 
             return (
-              <div
-                key={hari}
-                className="rounded-2xl overflow-hidden border shadow"
-              >
+             <div
+  key={hari}
+  className="rounded-2xl overflow-hidden shadow"
+>
 
                 {/* Header Hari */}
-                <div className="bg-[#182232] text-white p-4 font-bold text-lg flex items-center gap-2">
-                  📅 {hari}
-                </div>
+                <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
+  <img
+    src="/images/kalender1.png"
+    alt="Calendar"
+    className="w-8 absolute left-4"
+  />
+
+  <span>{hari}</span>
+</div>
 
                 {/* Isi */}
-                <div className="bg-[#BFE3FF]">
+                <div className="bg-blue-300">
 
                   {loading ? (
                     <div className="p-5 text-center">
@@ -111,11 +117,35 @@ export default function AdminJadwalPage() {
                       return (
                         <div
                           key={item.id}
-                          className="p-4 border-b"
+                          className="p-4 border-b bg-[#DFF1FF]"
                         >
 
-                          <div className="text-sm mb-3">
-  🕒 {jamMulai} - {jamSelesai}
+                          <div className="flex items-center gap-2 text-sm mb-3">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <ellipse
+      cx="15"
+      cy="15"
+      rx="12.5"
+      ry="12.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M15 10V15L17.5 17.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+
+  <span>{jamMulai} - {jamSelesai}</span>
 </div>
 
 <div className="flex gap-3 items-center">
@@ -157,9 +187,33 @@ export default function AdminJadwalPage() {
                           className="p-4 border-b"
                         >
 
-                          <div className="text-sm mb-3">
-                            🕒 --:-- - --:--
-                          </div>
+                          <div className="flex items-center gap-2 text-sm mb-3">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <ellipse
+      cx="15"
+      cy="15"
+      rx="12.5"
+      ry="12.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M15 10V15L17.5 17.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+
+  <span>--:-- - --:--</span>
+</div>
 
                           <div className="flex gap-3">
 
