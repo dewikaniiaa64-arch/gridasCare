@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { CalendarDays, Clock3 } from 'lucide-react';
 
 type Props = {
   hari: string;
@@ -16,15 +17,12 @@ export default function JadwalCard({ hari, items }: Props) {
   return (
     <div className="w-full rounded-[22px] overflow-hidden shadow-lg bg-[#6C9BE6]/75 backdrop-blur-md border border-white/20 flex flex-col">
       {/* Header Hari */}
-      <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
-  <img
-    src="/images/kalender1.png"
-    alt="Calendar"
-    className="w-8 absolute left-4"
-  />
-
-  <span>{hari}</span>
-</div>
+      <div className="relative bg-[#233863] h-11 flex items-center justify-center px-4">
+        <CalendarDays size={16} className="absolute left-4 text-white" />
+        <span className="text-white font-bold text-sm lg:text-[16px]">
+          {hari}
+        </span>
+      </div>
 
       {/* List Petugas */}
       <div className="p-3 flex-1 flex flex-col justify-start gap-1">
@@ -43,29 +41,7 @@ export default function JadwalCard({ hari, items }: Props) {
               >
                 {/* Waktu Piket */}
                 <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-medium mb-1">
-                  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 30 30"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <ellipse
-      cx="15"
-      cy="15"
-      rx="12.5"
-      ry="12.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M15 10V15L17.5 17.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+                  <Clock3 size={13} className="text-white/80 shrink-0" />
                   <span>
                     {jamMulai} - {jamSelesai}
                   </span>
