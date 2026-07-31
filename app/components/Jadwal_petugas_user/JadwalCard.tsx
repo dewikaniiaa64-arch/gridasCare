@@ -16,15 +16,19 @@ export default function JadwalCard({ hari, items }: Props) {
   return (
     <div className="w-full rounded-[22px] overflow-hidden shadow-lg bg-[#6C9BE6]/75 backdrop-blur-md border border-white/20 flex flex-col">
       {/* Header Hari */}
-      <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
-  <img
+      <div className="relative bg-[#233863] h-11 flex items-center justify-center px-4">
+        {/* Gambar Kalender Kustom */}
+        <div className="absolute left-4 w-5 h-5 flex items-center justify-center">
+           <img
     src="/images/kalender1.png"
     alt="Calendar"
     className="w-8 absolute left-4"
   />
-
-  <span>{hari}</span>
-</div>
+        </div>
+        <span className="text-white font-bold text-sm lg:text-[16px]">
+          {hari}
+        </span>
+      </div>
 
       {/* List Petugas */}
       <div className="p-3 flex-1 flex flex-col justify-start gap-1">
@@ -41,9 +45,9 @@ export default function JadwalCard({ hari, items }: Props) {
                 key={item.id || index}
                 className="py-2 border-b border-white/20 last:border-none"
               >
-                {/* Waktu Piket */}
+                {/* Waktu Piket dengan Gambar Jam Kustom */}
                 <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-medium mb-1">
-                  <svg
+                 <svg
     width="20"
     height="20"
     viewBox="0 0 30 30"
@@ -75,13 +79,11 @@ export default function JadwalCard({ hari, items }: Props) {
                 <div className="flex items-center gap-2.5">
                   {/* Icon Person Hitam Pekat */}
                   <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-5 h-5 text-black fill-current"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle cx="12" cy="7" r="4.5" />
-                      <path d="M12 13c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z" />
-                    </svg>
+                    <img
+  src="/images/icon1.png"
+  alt="Icon"
+  className="w-16 h-16 object-cover"
+/>
                   </div>
 
                   {/* Nama & Jabatan */}
