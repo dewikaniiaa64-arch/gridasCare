@@ -18,13 +18,15 @@ export default function JadwalCard({ hari, items }: Props) {
       {/* Header Hari */}
       <div className="relative bg-[#233863] h-11 flex items-center justify-center px-4">
         {/* Gambar Kalender Kustom */}
-        <div className="absolute left-4 w-5 h-5 flex items-center justify-center">
-           <img
+        <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
+  <img
     src="/images/kalender1.png"
     alt="Calendar"
     className="w-8 absolute left-4"
   />
-        </div>
+
+  <span>{hari}</span>
+</div>
         <span className="text-white font-bold text-sm lg:text-[16px]">
           {hari}
         </span>
@@ -78,8 +80,9 @@ export default function JadwalCard({ hari, items }: Props) {
                 {/* Profil Petugas */}
                 <div className="flex items-center gap-2.5">
                   {/* Icon Person Hitam Pekat */}
-                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                    <img
+                  <div className="flex gap-3 items-center">
+
+  <img
   src="/images/icon1.png"
   alt="Icon"
   className="w-16 h-16 object-cover"

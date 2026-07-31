@@ -84,15 +84,15 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
           className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200 w-full max-w-sm md:max-w-none md:w-[260px] md:min-w-[260px] md:shrink-0 mx-auto md:mx-0"
         >
           {/* Header Hari */}
-          <div className="bg-[#0D2840] text-white text-center py-3 font-bold text-base flex items-center justify-center gap-2">
-            {/* Gambar Kalender Kustom */}
-            <img
+          <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
+  <img
     src="/images/kalender1.png"
     alt="Calendar"
     className="w-8 absolute left-4"
   />
-            <span>{item.hari}</span>
-          </div>
+
+  <span>{item.hari}</span>
+</div>
 
           {/* List Card Petugas */}
           <div className="flex flex-col divide-y divide-blue-300/60 flex-1">
@@ -131,8 +131,9 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
 
                     <div className="flex items-center gap-3">
                       {/* Gambar Avatar / Person Hitam */}
-                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0 shadow-xs">
-                        <img
+                      <div className="flex gap-3 items-center">
+
+  <img
   src="/images/icon1.png"
   alt="Icon"
   className="w-16 h-16 object-cover"
