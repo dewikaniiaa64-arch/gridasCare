@@ -59,6 +59,9 @@ const handleSave = async () => {
   try {
     const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
 
+    const jamMulaiFormat = `${jamMulai}:00.000`;
+    const jamSelesaiFormat = `${jamSelesai}:00.000`;
+
     const res = await fetch(
       "http://localhost:1337/api/jadwal-piket-ukss",
       {
@@ -71,8 +74,8 @@ const handleSave = async () => {
             Nama: formData.Nama,
             Jabatan: formData.Jabatan,
             Hari: formData.Hari,
-            Jam_Mulai: jamMulai,
-            Jam_Selesai: jamSelesai,
+            Jam_Mulai: jamMulaiFormat,
+            Jam_Selesai: jamSelesaiFormat,
           },
         }),
       }
