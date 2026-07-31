@@ -43,7 +43,7 @@ export default function AdminJadwalPage() {
 
     try {
       await fetch(
-        `http://localhost:1337/api/jadwal-piket-ukss/${id}`,
+        `http://localhost:1337/api/jadwalpiket-ukss/${id}`,
         {
           method: 'DELETE',
         }
@@ -59,6 +59,9 @@ const handleSave = async () => {
   try {
     const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
 
+    const jamMulaiFormat = `${jamMulai}:00.000`;
+    const jamSelesaiFormat = `${jamSelesai}:00.000`;
+
     const res = await fetch(
       "http://localhost:1337/api/jadwal-piket-ukss",
       {
@@ -71,8 +74,8 @@ const handleSave = async () => {
             Nama: formData.Nama,
             Jabatan: formData.Jabatan,
             Hari: formData.Hari,
-            Jam_Mulai: jamMulai,
-            Jam_Selesai: jamSelesai,
+            Jam_Mulai: jamMulaiFormat,
+            Jam_Selesai: jamSelesaiFormat,
           },
         }),
       }
@@ -158,15 +161,21 @@ const handleSave = async () => {
           {hariList.map((hari) => {
 
             const dataHari = dataJadwal.filter((item: any) => {
+  const attr = item.attributes || item;
 
-              const attr = item.attributes || item;
+  return (
+    attr.Hari === hari ||
+    attr.Hari === hari.replace("'", "")
+  );
+}).sort((a: any, b: any) => {
+  const attrA = a.attributes || a;
+  const attrB = b.attributes || b;
+  
+  const jamA = attrA.Jam_Mulai || "";
+  const jamB = attrB.Jam_Mulai || "";
 
-              return (
-                attr.Hari === hari ||
-                attr.Hari === hari.replace("'", "")
-              );
-            });
-
+  return jamA.localeCompare(jamB);
+});
             return (
              <div
   key={hari}
