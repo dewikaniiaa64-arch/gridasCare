@@ -1,6 +1,5 @@
-// File: src/app/components/Jadwal_petugas_user/JadwalList.tsx
-
 import React from 'react';
+import Image from 'next/image';
 
 interface Petugas {
   nama: string;
@@ -52,7 +51,6 @@ const initialJadwalData: SlotJadwal[] = [
 ];
 
 export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
-  // Format ulang data dari Strapi
   const structuredJadwal = structuredClone(initialJadwalData);
 
   if (jadwalList && jadwalList.length > 0) {
@@ -87,7 +85,13 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
         >
           {/* Header Hari */}
           <div className="bg-[#0D2840] text-white text-center py-3 font-bold text-base flex items-center justify-center gap-2">
-            <span>📅</span> {item.hari}
+            {/* Gambar Kalender Kustom */}
+            <img
+    src="/images/kalender1.png"
+    alt="Calendar"
+    className="w-8 absolute left-4"
+  />
+            <span>{item.hari}</span>
           </div>
 
           {/* List Card Petugas */}
@@ -97,13 +101,44 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
               return (
                 <div key={idx} className="px-5 py-3.5 flex flex-col justify-between hover:bg-blue-300/40 transition-colors">
                   <div>
+                    {/* Gambar Jam Kustom */}
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 mb-2">
-                      <span>🕒</span> {slot.jam}
+                      <svg
+    width="20"
+    height="20"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <ellipse
+      cx="15"
+      cy="15"
+      rx="12.5"
+      ry="12.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M15 10V15L17.5 17.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+                      <span>{slot.jam}</span>
                     </div>
+
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs shrink-0 shadow-xs">
-                        👤
+                      {/* Gambar Avatar / Person Hitam */}
+                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0 shadow-xs">
+                        <img
+  src="/images/icon1.png"
+  alt="Icon"
+  className="w-16 h-16 object-cover"
+/>
                       </div>
+
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-sm text-slate-900 leading-snug truncate">
                           {petugas?.nama || '-'}
