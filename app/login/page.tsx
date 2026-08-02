@@ -8,15 +8,31 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (username === "admin" && password === "caregridas") {
-      router.push('/adm/dashboard');
-    } else {
-      alert("Username atau Password salah!");
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        router.push('/adm/dashboard');
+      } else {
+        alert(data.message || "Username atau Password salah!");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,9 +116,10 @@ export default function LoginPage() {
           <div className="pt-2 flex justify-center">
             <button
               type="submit"
-              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-400 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
+              disabled={loading}
+              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-400 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer disabled:opacity-50"
             >
-              Login
+              {loading ? 'Memproses...' : 'Login'}
             </button>
           </div>
         </form>
