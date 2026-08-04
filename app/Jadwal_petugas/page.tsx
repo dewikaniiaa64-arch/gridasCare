@@ -27,7 +27,7 @@ export default function JadwalPetugasUserPage() {
         const formattedData = rawData.map((item: any) => {
           // Menyesuaikan jika menggunakan Strapi v4 (attributes) atau v5 (flat)
           const attr = item.attributes || item;
-          
+
           // Format jam dari "07:00:00.000" menjadi "07:00"
           const formatTime = (timeStr: string) => {
             if (!timeStr) return '';

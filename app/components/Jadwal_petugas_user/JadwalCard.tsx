@@ -1,6 +1,5 @@
 import React from 'react';
 import Image from 'next/image';
-import { CalendarDays, Clock3 } from 'lucide-react';
 
 type Props = {
   hari: string;
@@ -18,7 +17,14 @@ export default function JadwalCard({ hari, items }: Props) {
     <div className="w-full rounded-[22px] overflow-hidden shadow-lg bg-[#6C9BE6]/75 backdrop-blur-md border border-white/20 flex flex-col">
       {/* Header Hari */}
       <div className="relative bg-[#233863] h-11 flex items-center justify-center px-4">
-        <CalendarDays size={16} className="absolute left-4 text-white" />
+        {/* Gambar Kalender Kustom */}
+        <div className="absolute left-4 w-5 h-5 flex items-center justify-center">
+           <img
+    src="/images/kalender1.png"
+    alt="Calendar"
+    className="w-8 absolute left-4"
+  />
+        </div>
         <span className="text-white font-bold text-sm lg:text-[16px]">
           {hari}
         </span>
@@ -39,9 +45,31 @@ export default function JadwalCard({ hari, items }: Props) {
                 key={item.id || index}
                 className="py-2 border-b border-white/20 last:border-none"
               >
-                {/* Waktu Piket */}
+                {/* Waktu Piket dengan Gambar Jam Kustom */}
                 <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-medium mb-1">
-                  <Clock3 size={13} className="text-white/80 shrink-0" />
+                 <svg
+    width="20"
+    height="20"
+    viewBox="0 0 30 30"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <ellipse
+      cx="15"
+      cy="15"
+      rx="12.5"
+      ry="12.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M15 10V15L17.5 17.5"
+      stroke="#07479B"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
                   <span>
                     {jamMulai} - {jamSelesai}
                   </span>
@@ -51,13 +79,11 @@ export default function JadwalCard({ hari, items }: Props) {
                 <div className="flex items-center gap-2.5">
                   {/* Icon Person Hitam Pekat */}
                   <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                    <svg
-                      className="w-5 h-5 text-black fill-current"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle cx="12" cy="7" r="4.5" />
-                      <path d="M12 13c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z" />
-                    </svg>
+                    <img
+  src="/images/icon1.png"
+  alt="Icon"
+  className="w-16 h-16 object-cover"
+/>
                   </div>
 
                   {/* Nama & Jabatan */}

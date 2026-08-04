@@ -15,7 +15,7 @@ export default function AdminJadwalPage() {
   const fetchJadwal = async () => {
     try {
       const res = await fetch(
-        'http://localhost:1337/api/jadwal-piket-ukss?populate=*'
+        'https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss?populate=*'
       );
 
       if (!res.ok) throw new Error();
@@ -79,24 +79,18 @@ export default function AdminJadwalPage() {
             });
 
             return (
-             <div
-  key={hari}
-  className="rounded-2xl overflow-hidden shadow"
->
+              <div
+                key={hari}
+                className="rounded-2xl overflow-hidden border shadow"
+              >
 
                 {/* Header Hari */}
-                <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
-  <img
-    src="/images/kalender1.png"
-    alt="Calendar"
-    className="w-8 absolute left-4"
-  />
-
-  <span>{hari}</span>
-</div>
+                <div className="bg-[#182232] text-white p-4 font-bold text-lg flex items-center gap-2">
+                  📅 {hari}
+                </div>
 
                 {/* Isi */}
-                <div className="bg-blue-300">
+                <div className="bg-[#BFE3FF]">
 
                   {loading ? (
                     <div className="p-5 text-center">
@@ -109,69 +103,45 @@ export default function AdminJadwalPage() {
                       const attr = item.attributes || item;
 
                       const jamMulai =
-                        attr.Jam_Mulai?.slice(0,5) || '--:--';
+                        attr.Jam_Mulai?.slice(0, 5) || '--:--';
 
                       const jamSelesai =
-                        attr.Jam_Selesai?.slice(0,5) || '--:--';
+                        attr.Jam_Selesai?.slice(0, 5) || '--:--';
 
                       return (
                         <div
                           key={item.id}
-                          className="p-4 border-b bg-[#DFF1FF]"
+                          className="p-4 border-b"
                         >
 
-                          <div className="flex items-center gap-2 text-sm mb-3">
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 30 30"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <ellipse
-      cx="15"
-      cy="15"
-      rx="12.5"
-      ry="12.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M15 10V15L17.5 17.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+                          <div className="text-sm mb-3">
+                            🕒 {jamMulai} - {jamSelesai}
+                          </div>
 
-  <span>{jamMulai} - {jamSelesai}</span>
-</div>
+                          <div className="flex gap-3 items-center">
 
-<div className="flex gap-3 items-center">
+                            <img
+                              src="/images/icon1.png"
+                              alt="Icon"
+                              className="w-16 h-16 object-cover"
+                            />
 
-  <img
-  src="/images/icon1.png"
-  alt="Icon"
-  className="w-16 h-16 object-cover"
-/>
+                            <div className="flex-1">
+                              <p className="font-bold text-sm">
+                                {attr.Nama}
+                              </p>
 
-  <div className="flex-1">
-    <p className="font-bold text-sm">
-      {attr.Nama}
-    </p>
+                              <p className="text-sm text-gray-700">
+                                {attr.Jabatan}
+                              </p>
+                            </div>
 
-    <p className="text-sm text-gray-700">
-      {attr.Jabatan}
-    </p>
-  </div>
-
-  <button
-    onClick={() => handleDelete(item.id)}
-    className="text-red-500"
-  >
-    🗑️
-  </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="text-red-500"
+                            >
+                              🗑️
+                            </button>
 
                           </div>
                         </div>
@@ -181,47 +151,23 @@ export default function AdminJadwalPage() {
                   ) : (
 
                     <>
-                      {[1,2,3,4].map((i) => (
+                      {[1, 2, 3, 4].map((i) => (
                         <div
                           key={i}
                           className="p-4 border-b"
                         >
 
-                          <div className="flex items-center gap-2 text-sm mb-3">
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 30 30"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <ellipse
-      cx="15"
-      cy="15"
-      rx="12.5"
-      ry="12.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M15 10V15L17.5 17.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-
-  <span>--:-- - --:--</span>
-</div>
+                          <div className="text-sm mb-3">
+                            🕒 --:-- - --:--
+                          </div>
 
                           <div className="flex gap-3">
 
-                           <img
-  src="/images/icon1.png"
-  alt="Icon"
-  className="w-16 h-16 object-cover"
-/>
+                            <img
+                              src="/images/icon1.png"
+                              alt="Icon"
+                              className="w-16 h-16 object-cover"
+                            />
 
                             <div>
                               <p className="font-bold">
