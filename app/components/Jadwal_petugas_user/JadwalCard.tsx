@@ -1,5 +1,5 @@
-import React from 'react';
-import Image from 'next/image';
+import React from "react";
+import Image from "next/image";
 
 type Props = {
   hari: string;
@@ -9,8 +9,8 @@ type Props = {
 export default function JadwalCard({ hari, items }: Props) {
   // Format jam "07:00:00.000" -> "07.00"
   const formatJam = (jamStr: string) => {
-    if (!jamStr) return '';
-    return jamStr.substring(0, 5).replace(':', '.');
+    if (!jamStr) return "";
+    return jamStr.substring(0, 5).replace(":", ".");
   };
 
   return (
@@ -18,12 +18,14 @@ export default function JadwalCard({ hari, items }: Props) {
       {/* Header Hari */}
       <div className="relative bg-[#233863] h-11 flex items-center justify-center px-4">
         {/* Gambar Kalender Kustom */}
-        <div className="absolute left-4 w-5 h-5 flex items-center justify-center">
-           <img
-    src="/images/kalender1.png"
-    alt="Calendar"
-    className="w-8 absolute left-4"
-  />
+        <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
+          <img
+            src="/images/kalender1.png"
+            alt="Calendar"
+            className="w-8 absolute left-4"
+          />
+
+          <span>{hari}</span>
         </div>
         <span className="text-white font-bold text-sm lg:text-[16px]">
           {hari}
@@ -35,8 +37,8 @@ export default function JadwalCard({ hari, items }: Props) {
         {items.length > 0 ? (
           items.map((item, index) => {
             const data = item?.attributes || item;
-            const nama = data.Nama || data.nama || '-';
-            const jabatan = data.Jabatan || data.jabatan || 'Anggota';
+            const nama = data.Nama || data.nama || "-";
+            const jabatan = data.Jabatan || data.jabatan || "Anggota";
             const jamMulai = formatJam(data.Jam_Mulai || data.jam_mulai);
             const jamSelesai = formatJam(data.Jam_Selesai || data.jam_selesai);
 
@@ -47,29 +49,29 @@ export default function JadwalCard({ hari, items }: Props) {
               >
                 {/* Waktu Piket dengan Gambar Jam Kustom */}
                 <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-medium mb-1">
-                 <svg
-    width="20"
-    height="20"
-    viewBox="0 0 30 30"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <ellipse
-      cx="15"
-      cy="15"
-      rx="12.5"
-      ry="12.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-    />
-    <path
-      d="M15 10V15L17.5 17.5"
-      stroke="#07479B"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 30 30"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <ellipse
+                      cx="15"
+                      cy="15"
+                      rx="12.5"
+                      ry="12.5"
+                      stroke="#07479B"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M15 10V15L17.5 17.5"
+                      stroke="#07479B"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                   <span>
                     {jamMulai} - {jamSelesai}
                   </span>
@@ -78,12 +80,12 @@ export default function JadwalCard({ hari, items }: Props) {
                 {/* Profil Petugas */}
                 <div className="flex items-center gap-2.5">
                   {/* Icon Person Hitam Pekat */}
-                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                  <div className="flex gap-3 items-center">
                     <img
-  src="/images/icon1.png"
-  alt="Icon"
-  className="w-16 h-16 object-cover"
-/>
+                      src="/images/icon1.png"
+                      alt="Icon"
+                      className="w-16 h-16 object-cover"
+                    />
                   </div>
 
                   {/* Nama & Jabatan */}

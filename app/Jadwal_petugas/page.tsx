@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import HeroJadwal from '@/app/components/Jadwal_petugas_user/HeroJadwal';
-import JadwalList from '@/app/components/Jadwal_petugas_user/JadwalList';
+import { useEffect, useState } from "react";
+import HeroJadwal from "@/app/components/Jadwal_petugas_user/HeroJadwal";
+import JadwalList from "@/app/components/Jadwal_petugas_user/JadwalList";
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL =
+  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 export default function JadwalPetugasUserPage() {
   const [jadwalList, setJadwalList] = useState<any[]>([]);
@@ -14,10 +15,12 @@ export default function JadwalPetugasUserPage() {
   useEffect(() => {
     const fetchJadwalFromStrapi = async () => {
       try {
-        const response = await fetch(`${STRAPI_URL}/api/jadwal-piket-ukss?populate=*`);
+        const response = await fetch(
+          `${STRAPI_URL}/api/jadwal-piket-ukss?populate=*`,
+        );
 
         if (!response.ok) {
-          throw new Error('Gagal mengambil data jadwal dari Strapi');
+          throw new Error("Gagal mengambil data jadwal dari Strapi");
         }
 
         const result = await response.json();
@@ -30,13 +33,16 @@ export default function JadwalPetugasUserPage() {
 
           // Format jam dari "07:00:00.000" menjadi "07:00"
           const formatTime = (timeStr: string) => {
-            if (!timeStr) return '';
+            if (!timeStr) return "";
             return timeStr.slice(0, 5);
           };
 
           const jamMulai = formatTime(attr.Jam_Mulai);
           const jamSelesai = formatTime(attr.Jam_Selesai);
-          const jamSlot = jamMulai && jamSelesai ? `${jamMulai}-${jamSelesai}` : (attr.jam || '');
+          const jamSlot =
+            jamMulai && jamSelesai
+              ? `${jamMulai}-${jamSelesai}`
+              : attr.jam || "";
 
           return {
             id: item.id,
@@ -49,7 +55,7 @@ export default function JadwalPetugasUserPage() {
 
         setJadwalList(formattedData);
       } catch (err: any) {
-        console.error('Error fetching jadwal:', err);
+        console.error("Error fetching jadwal:", err);
         setError(err.message);
       } finally {
         setLoading(false);
