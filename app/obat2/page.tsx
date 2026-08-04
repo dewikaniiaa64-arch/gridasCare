@@ -42,8 +42,8 @@ export default function ObatObatanPage() {
   useEffect(() => {
     const fetchObatFromStrapi = async () => {
       try {
-        const response = await fetch(`http://localhost:1337/api/obat-obatans?populate=*`);
-        
+        const response = await fetch('https://bmkvr3zj-1337.asse.devtunnels.ms/api/obat-obatans?populate=*');
+
         if (!response.ok) {
           throw new Error('Gagal mengambil data dari server Strapi');
         }
@@ -146,16 +146,16 @@ export default function ObatObatanPage() {
             const aturanPakai = formatAturanPakai(obat.Aturan_pakai || obat.aturan);
 
             // 5. Penanganan URL Gambar yang Presisi
-            const pathGambar = 
-              obat?.Gambar?.url || 
-              obat?.gambar?.data?.attributes?.url || 
+            const pathGambar =
+              obat?.Gambar?.url ||
+              obat?.gambar?.data?.attributes?.url ||
               obat?.gambar?.url;
 
             let gambarUrl = '/images/paracetamol.png'; // Fallback default
 
             if (pathGambar) {
-              gambarUrl = pathGambar.startsWith('http') 
-                ? pathGambar 
+              gambarUrl = pathGambar.startsWith('http')
+                ? pathGambar
                 : `http://localhost:1337${pathGambar}`;
             }
 

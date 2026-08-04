@@ -33,7 +33,7 @@ export default function AdminSiswaSakitPage() {
   const fetchDataSiswa = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*`);
+      const res = await fetch('https://bmkvr3zj-1337.asse.devtunnels.ms/api/siswa-sakits?populate=*');
       if (!res.ok) return;
 
       const result = await res.json();

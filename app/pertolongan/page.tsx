@@ -19,7 +19,7 @@ export default function PertolonganPage() {
   useEffect(() => {
     const fetchPertolonganFromStrapi = async () => {
       try {
-        const response = await fetch(`http://localhost:1337/api/pertolongan-pertamas?populate=*`);
+        const response = await fetch('https://bmkvr3zj-1337.asse.devtunnels.ms/api/pertolongan-pertamas?populate=*');
 
         if (!response.ok) {
           throw new Error('Gagal mengambil data dari server Strapi');
