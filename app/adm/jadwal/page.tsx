@@ -117,11 +117,7 @@ export default function AdminJadwalPage() {
                       return (
                         <div
                           key={item.id}
-<<<<<<< HEAD
-                          className="p-4 border-b bg-blue-300"
-=======
                           className="p-4 border-b"
->>>>>>> 9f5e64f2f17ead26b808fb785ea8a8f198e81e6e
                         >
 
                           <div className="text-sm mb-3">
