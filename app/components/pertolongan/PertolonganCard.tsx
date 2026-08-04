@@ -19,12 +19,8 @@ export default function PertolonganCard({
       className="bg-white rounded-3xl p-6 border border-gray-100 shadow-md hover:shadow-xl transition duration-300 cursor-pointer flex flex-col items-center text-center justify-between h-full"
     >
       {/* Container Gambar Bulat */}
-      <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center p-3 mb-4 shrink-0">
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-contain"
-        />
+      <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center mb-4 shrink-0">
+        <img src={image} alt={title} className="w-full h-full object-contain" />
       </div>
 
       {/* Judul dan Deskripsi */}

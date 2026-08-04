@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import CatatanBox from '@/app/components/obatobatan/CatatanBox';
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import CatatanBox from "@/app/components/obatobatan/CatatanBox";
 
 // Tipe Data Disesuaikan dengan JSON Strapi v5
 interface GambarStrapi {
@@ -42,16 +42,18 @@ export default function ObatObatanPage() {
   useEffect(() => {
     const fetchObatFromStrapi = async () => {
       try {
-        const response = await fetch('https://bmkvr3zj-1337.asse.devtunnels.ms/api/obat-obatans?populate=*');
+        const response = await fetch(
+          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/obat-obatans?populate=*",
+        );
 
         if (!response.ok) {
-          throw new Error('Gagal mengambil data dari server Strapi');
+          throw new Error("Gagal mengambil data dari server Strapi");
         }
 
         const result = await response.json();
         setDaftarObat(result.data || []);
       } catch (err: any) {
-        console.error('Error fetching obat:', err);
+        console.error("Error fetching obat:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -62,18 +64,22 @@ export default function ObatObatanPage() {
   }, []);
 
   // Helper untuk mengekstrak teks dari Rich Text Strapi v5
-  const formatAturanPakai = (aturan: AturanPakaiBlock[] | string | undefined): string => {
-    if (!aturan) return 'Tidak ada aturan khusus';
-    if (typeof aturan === 'string') return aturan;
+  const formatAturanPakai = (
+    aturan: AturanPakaiBlock[] | string | undefined,
+  ): string => {
+    if (!aturan) return "Tidak ada aturan khusus";
+    if (typeof aturan === "string") return aturan;
 
     if (Array.isArray(aturan)) {
       return aturan
-        .map((block) => block.children?.map((child) => child.text).join('') || '')
+        .map(
+          (block) => block.children?.map((child) => child.text).join("") || "",
+        )
         .filter(Boolean)
-        .join(' ');
+        .join(" ");
     }
 
-    return 'Tidak ada aturan khusus';
+    return "Tidak ada aturan khusus";
   };
 
   return (
@@ -100,7 +106,8 @@ export default function ObatObatanPage() {
           </div>
 
           <p className="text-gray-700 text-sm md:text-base leading-relaxed">
-            Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan ringan.
+            Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
+            ringan.
           </p>
         </div>
 
@@ -134,29 +141,32 @@ export default function ObatObatanPage() {
             const obat = item?.attributes || item;
 
             // 1. Ambil Nama
-            const nama = obat.Nama_Obat || obat.nama || 'Obat';
+            const nama = obat.Nama_Obat || obat.nama || "Obat";
 
             // 2. Ambil Kategori / Tipe
-            const tipe = obat.Kategori_obat || obat.tipe || 'Umum';
+            const tipe = obat.Kategori_obat || obat.tipe || "Umum";
 
             // 3. Ambil Deskripsi / Kegunaan
-            const desc = obat.Kegunaan || obat.desc || 'Tidak ada deskripsi.';
+            const desc = obat.Kegunaan || obat.desc || "Tidak ada deskripsi.";
 
             // 4. Ambil Aturan Pakai
-            const aturanPakai = formatAturanPakai(obat.Aturan_pakai || obat.aturan);
+            const aturanPakai = formatAturanPakai(
+              obat.Aturan_pakai || obat.aturan,
+            );
 
             // 5. Penanganan URL Gambar yang Presisi
             const pathGambar =
               obat?.Gambar?.url ||
               obat?.gambar?.data?.attributes?.url ||
               obat?.gambar?.url;
-
-            let gambarUrl = '/images/paracetamol.png'; // Fallback default
+            const strapiUrl =
+              process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+            let gambarUrl = "/images/paracetamol.png"; // Fallback default
 
             if (pathGambar) {
-              gambarUrl = pathGambar.startsWith('http')
+              gambarUrl = pathGambar.startsWith("http")
                 ? pathGambar
-                : `http://localhost:1337${pathGambar}`;
+                : `${strapiUrl}${pathGambar}`;
             }
 
             return (
@@ -171,8 +181,8 @@ export default function ObatObatanPage() {
                       src={gambarUrl}
                       alt={nama}
                       fill
-                      className="object-contain"
-                      unoptimized={gambarUrl.startsWith('http://localhost:1337')}
+                      className="object-cover"
+                      unoptimized={true}
                     />
                   </div>
                   <div className="flex-1">
