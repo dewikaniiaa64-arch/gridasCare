@@ -19,16 +19,18 @@ export default function PertolonganPage() {
   useEffect(() => {
     const fetchPertolonganFromStrapi = async () => {
       try {
-        const response = await fetch('https://bmkvr3zj-1337.asse.devtunnels.ms/api/pertolongan-pertamas?populate=*');
+        const response = await fetch(
+          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/pertolongan-pertamas?populate=*",
+        );
 
         if (!response.ok) {
-          throw new Error('Gagal mengambil data dari server Strapi');
+          throw new Error("Gagal mengambil data dari server Strapi");
         }
 
         const result = await response.json();
         setDaftarPertolongan(result.data || []);
       } catch (err: any) {
-        console.error('Error fetching pertolongan pertama:', err);
+        console.error("Error fetching pertolongan pertama:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -45,15 +47,21 @@ export default function PertolonganPage() {
     const steps: string[] = [];
 
     panduanBlocks.forEach((block: any) => {
-      if (block.type === 'list' && Array.isArray(block.children)) {
+      if (block.type === "list" && Array.isArray(block.children)) {
         block.children.forEach((listItem: any) => {
           if (listItem.children) {
-            const text = listItem.children.map((child: any) => child.text).join('').trim();
+            const text = listItem.children
+              .map((child: any) => child.text)
+              .join("")
+              .trim();
             if (text) steps.push(text);
           }
         });
-      } else if (block.type === 'paragraph' && Array.isArray(block.children)) {
-        const text = block.children.map((child: any) => child.text).join('').trim();
+      } else if (block.type === "paragraph" && Array.isArray(block.children)) {
+        const text = block.children
+          .map((child: any) => child.text)
+          .join("")
+          .trim();
         if (text) steps.push(text);
       }
     });
@@ -93,8 +101,12 @@ export default function PertolonganPage() {
               {daftarPertolongan.map((item) => {
                 const data = item?.attributes || item;
 
-                const title = data.Nama || data.nama || 'Pertolongan Pertama';
-                const description = (data.Deskripsi || data.deskripsi || '').replace(/\n/g, ' ');
+                const title = data.Nama || data.nama || "Pertolongan Pertama";
+                const description = (
+                  data.Deskripsi ||
+                  data.deskripsi ||
+                  ""
+                ).replace(/\n/g, " ");
                 const steps = parsePanduanToSteps(data.Panduan || data.panduan);
 
                 // URL Gambar Strapi
@@ -102,13 +114,14 @@ export default function PertolonganPage() {
                   data?.Gambar?.url ||
                   data?.gambar?.data?.attributes?.url ||
                   data?.gambar?.url;
-
-                let image = '/images/luka.png'; // Fallback
+                const strapiUrl =
+                  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+                let image = "/images/luka.png"; // Fallback
 
                 if (pathGambar) {
-                  image = pathGambar.startsWith('http')
+                  image = pathGambar.startsWith("http")
                     ? pathGambar
-                    : `http://localhost:1337${pathGambar}`;
+                    : `${strapiUrl}${pathGambar}`;
                 }
 
                 return (
@@ -148,11 +161,11 @@ export default function PertolonganPage() {
 
             {/* Gambar */}
             <div className="flex justify-center">
-              <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center shadow-lg p-2">
+              <div className="w-28 h-28 rounded-full flex items-center justify-center overflow-hidden">
                 <img
                   src={selected.image}
                   alt={selected.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover "
                 />
               </div>
             </div>
