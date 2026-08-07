@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const STRAPI_URL =
   process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
@@ -110,32 +112,118 @@ export default function AdminSiswaSakitPage() {
 
   // Eksekusi Export Laporan Langsung ke Excel
   const handleExportSubmit = () => {
-    if (exportFormat === "excel") {
-      let dataToExport = dataSiswa;
+  let dataToExport = dataSiswa;
 
-      if (startDate && endDate) {
-        dataToExport = dataToExport.filter((item) => {
-          const itemDate = item.tanggal;
-          return itemDate >= startDate && itemDate <= endDate;
-        });
-      }
+  // Filter tanggal
+  if (startDate && endDate) {
+    dataToExport = dataToExport.filter((item) => {
+      const itemDate = item.tanggal;
+      return itemDate >= startDate && itemDate <= endDate;
+    });
+  }
 
-      if (!dataToExport || dataToExport.length === 0) {
-        alert("Tidak ada data untuk diexport!");
-        return;
-      }
+  // Cek data
+  if (!dataToExport || dataToExport.length === 0) {
+    alert("Tidak ada data untuk diexport!");
+    return;
+  }
 
-      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Data");
+  // =========================
+  // EXPORT EXCEL
+  // =========================
+  if (exportFormat === "excel") {
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
 
-      XLSX.writeFile(workbook, "Laporan_GridasCare.xlsx");
-    } else if (exportFormat === "pdf") {
-      alert("Format PDF belum diatur.");
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Laporan Data"
+    );
+
+    XLSX.writeFile(
+      workbook,
+      "Laporan_GridasCare.xlsx"
+    );
+  }
+
+  // =========================
+  // EXPORT PDF
+  // =========================
+  else if (exportFormat === "pdf") {
+    const doc = new jsPDF();
+
+    // Judul
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Laporan Data Siswa Sakit", 14, 20);
+
+    // Subjudul
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "GridasCare - Unit Kesehatan Sekolah",
+      14,
+      28
+    );
+
+    // Rentang tanggal
+    if (startDate && endDate) {
+      doc.text(
+        `Periode: ${startDate} s/d ${endDate}`,
+        14,
+        36
+      );
     }
 
-    setShowExportModal(false);
-  };
+    // Data tabel
+    const tableData = dataToExport.map((item, index) => [
+      index + 1,
+      item.nama,
+      item.kelas,
+      item.keluhan,
+      item.tanggal,
+      item.penanganan,
+    ]);
+
+    autoTable(doc, {
+      startY: startDate && endDate ? 42 : 36,
+
+      head: [
+        [
+          "No",
+          "Nama",
+          "Kelas",
+          "Keluhan",
+          "Tanggal",
+          "Penanganan",
+        ],
+      ],
+
+      body: tableData,
+
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+      },
+
+      headStyles: {
+        fillColor: [59, 145, 255],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+
+      alternateRowStyles: {
+        fillColor: [245, 248, 252],
+      },
+    });
+
+    // Download PDF
+    doc.save("Laporan_GridasCare.pdf");
+  }
+
+  setShowExportModal(false);
+};
 
   const filteredData = dataSiswa.filter(
     (item) =>
