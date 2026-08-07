@@ -286,15 +286,6 @@ export default function AdminJadwalPage() {
                                 </>
                               )}
                             </div>
-
-                            {attr && (
-                              <button
-                                onClick={() => handleDelete(matchedItem.id)}
-                                className="text-red-500 hover:opacity-75"
-                              >
-                                🗑️
-                              </button>
-                            )}
                           </div>
                         </div>
                       );
