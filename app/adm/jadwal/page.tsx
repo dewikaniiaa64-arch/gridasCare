@@ -15,6 +15,12 @@ export default function AdminJadwalPage() {
   });
 
   const hariList = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+  const jamList = [
+    "07:00 - 09:00",
+    "09:00 - 11:00",
+    "11:00 - 13:00",
+    "13:00 - 15:00",
+  ];
 
   useEffect(() => {
     fetchJadwal();
@@ -57,42 +63,82 @@ export default function AdminJadwalPage() {
 
   const handleSave = async () => {
     try {
-      const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
+      if (!formData.Hari || !formData.Jam) {
+        alert(
+          "Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!",
+        );
+        return;
+      }
 
+      const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
       const jamMulaiFormat = `${jamMulai}:00.000`;
       const jamSelesaiFormat = `${jamSelesai}:00.000`;
 
-      const res = await fetch(
-        "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            data: {
-              Nama: formData.Nama,
-              Jabatan: formData.Jabatan,
-              Hari: formData.Hari,
-              Jam_Mulai: jamMulaiFormat,
-              Jam_Selesai: jamSelesaiFormat,
+      // 1. Cari apakah sudah ada data dengan Hari dan Jam yang sama di database
+      const targetItem = dataJadwal.find((item: any) => {
+        const attr = item.attributes || item;
+        const dbJamMulai = attr.Jam_Mulai ? attr.Jam_Mulai.slice(0, 5) : "";
+        const dbJamSelesai = attr.Jam_Selesai
+          ? attr.Jam_Selesai.slice(0, 5)
+          : "";
+
+        return (
+          attr.Hari === formData.Hari &&
+          dbJamMulai === jamMulai &&
+          dbJamSelesai === jamSelesai
+        );
+      });
+
+      let res;
+      if (targetItem) {
+        // 2. Jika ketemu, lakukan UPDATE (PUT)
+        const documentIdOrId = targetItem.documentId || targetItem.id;
+        res = await fetch(
+          `https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss/${documentIdOrId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
             },
-          }),
-        },
-      );
+            body: JSON.stringify({
+              data: {
+                Nama: formData.Nama,
+                Jabatan: formData.Jabatan,
+              },
+            }),
+          },
+        );
+      } else {
+        // 3. Jika belum ada, buat baru (POST)
+        res = await fetch(
+          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              data: {
+                Nama: formData.Nama,
+                Jabatan: formData.Jabatan,
+                Hari: formData.Hari,
+                Jam_Mulai: jamMulaiFormat,
+                Jam_Selesai: jamSelesaiFormat,
+              },
+            }),
+          },
+        );
+      }
 
       const result = await res.json();
-      console.log(result);
 
       if (!res.ok) {
         alert(JSON.stringify(result, null, 2));
         return;
       }
 
-      alert("Data berhasil disimpan!");
-
+      alert("Jadwal petugas berhasil diperbarui!");
       setOpenModal(false);
-
       setFormData({
         Nama: "",
         Jabatan: "",
@@ -138,7 +184,6 @@ export default function AdminJadwalPage() {
               strokeLinecap="square"
             />
           </svg>
-
           <span>Edit Petugas</span>
         </button>
       </div>
@@ -147,12 +192,6 @@ export default function AdminJadwalPage() {
       <div className="bg-[#EAEFF5] rounded-3xl p-5 shadow">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {hariList.map((hari) => {
-            const dataHari = dataJadwal.filter((item: any) => {
-              const attr = item.attributes || item;
-
-              return attr.Hari === hari || attr.Hari === hari.replace("'", "");
-            });
-
             return (
               <div key={hari} className="rounded-2xl overflow-hidden shadow">
                 {/* Header Hari */}
@@ -162,25 +201,38 @@ export default function AdminJadwalPage() {
                     alt="Calendar"
                     className="w-8 absolute left-4"
                   />
-
                   <span>{hari}</span>
                 </div>
 
-                {/* Isi */}
+                {/* Isi Berdasarkan 4 Slot Jam Tetap */}
                 <div className="bg-blue-300">
                   {loading ? (
                     <div className="p-5 text-center">Memuat...</div>
-                  ) : dataHari.length > 0 ? (
-                    dataHari.map((item: any) => {
-                      const attr = item.attributes || item;
+                  ) : (
+                    jamList.map((jamSlot) => {
+                      const [slotMulai] = jamSlot.split(" - ");
 
-                      const jamMulai = attr.Jam_Mulai?.slice(0, 5) || "--:--";
+                      // Cari data di database yang sesuai Hari dan Jam Mulai-nya
+                      const matchedItem = dataJadwal.find((item: any) => {
+                        const attr = item.attributes || item;
+                        const itemHari = attr.Hari;
+                        const dbJamMulai = attr.Jam_Mulai
+                          ? attr.Jam_Mulai.slice(0, 5)
+                          : "";
 
-                      const jamSelesai =
-                        attr.Jam_Selesai?.slice(0, 5) || "--:--";
+                        return (
+                          (itemHari === hari ||
+                            itemHari === hari.replace("'", "")) &&
+                          dbJamMulai === slotMulai
+                        );
+                      });
+
+                      const attr = matchedItem
+                        ? matchedItem.attributes || matchedItem
+                        : null;
 
                       return (
-                        <div key={item.id} className="p-4 border-b bg-blue-300">
+                        <div key={jamSlot} className="p-4 border-b bg-blue-300">
                           <div className="flex items-center gap-2 text-sm mb-3">
                             <svg
                               width="20"
@@ -205,10 +257,7 @@ export default function AdminJadwalPage() {
                                 strokeLinejoin="round"
                               />
                             </svg>
-
-                            <span>
-                              {jamMulai} - {jamSelesai}
-                            </span>
+                            <span>{jamSlot}</span>
                           </div>
 
                           <div className="flex gap-3 items-center">
@@ -219,64 +268,37 @@ export default function AdminJadwalPage() {
                             />
 
                             <div className="flex-1">
-                              <p className="font-bold text-sm">{attr.Nama}</p>
-
-                              <p className="text-sm text-gray-700">
-                                {attr.Jabatan}
-                              </p>
+                              {attr ? (
+                                <>
+                                  <p className="font-bold text-sm">
+                                    {attr.Nama}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    {attr.Jabatan}
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="font-bold text-sm">
+                                    Belum ada data
+                                  </p>
+                                  <p className="text-sm text-gray-700">-</p>
+                                </>
+                              )}
                             </div>
+
+                            {attr && (
+                              <button
+                                onClick={() => handleDelete(matchedItem.id)}
+                                className="text-red-500 hover:opacity-75"
+                              >
+                                🗑️
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
                     })
-                  ) : (
-                    <>
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="p-4 border-b">
-                          <div className="flex items-center gap-2 text-sm mb-3">
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 30 30"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <ellipse
-                                cx="15"
-                                cy="15"
-                                rx="12.5"
-                                ry="12.5"
-                                stroke="#07479B"
-                                strokeWidth="1.5"
-                              />
-                              <path
-                                d="M15 10V15L17.5 17.5"
-                                stroke="#07479B"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-
-                            <span>--:-- - --:--</span>
-                          </div>
-
-                          <div className="flex gap-3">
-                            <img
-                              src="/images/icon1.png"
-                              alt="Icon"
-                              className="w-16 h-16 object-cover"
-                            />
-
-                            <div>
-                              <p className="font-bold">Belum ada data</p>
-
-                              <p className="text-sm">-</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </>
                   )}
                 </div>
               </div>
@@ -284,17 +306,16 @@ export default function AdminJadwalPage() {
           })}
         </div>
       </div>
+
+      {/* Modal Edit/Simpan */}
       {openModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="relative bg-white w-[500px] rounded-[28px] p-8 shadow-2xl">
-            {/* Tombol kembali */}
             <button
               onClick={() => setOpenModal(false)}
               className="absolute top-8 left-12 text-[#2563EB]"
             >
-              <span className="text-[38px] inline-flex items-center">
-                <IoArrowBack />
-              </span>
+              <IoArrowBack className="text-[38px]" />
             </button>
 
             <h2 className="text-center text-3xl font-bold text-[#3B91FF] mt-6 mb-8">
@@ -304,16 +325,12 @@ export default function AdminJadwalPage() {
             <div className="space-y-5">
               <div>
                 <label className="font-semibold block mb-2">Nama</label>
-
                 <input
                   type="text"
                   placeholder="Nama"
                   value={formData.Nama}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      Nama: e.target.value,
-                    })
+                    setFormData({ ...formData, Nama: e.target.value })
                   }
                   className="w-full border rounded-lg p-3"
                 />
@@ -321,14 +338,10 @@ export default function AdminJadwalPage() {
 
               <div>
                 <label className="font-semibold block mb-2">Jabatan</label>
-
                 <select
                   value={formData.Jabatan}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      Jabatan: e.target.value,
-                    })
+                    setFormData({ ...formData, Jabatan: e.target.value })
                   }
                   className="w-full border rounded-lg p-3"
                 >
@@ -341,14 +354,10 @@ export default function AdminJadwalPage() {
 
               <div>
                 <label className="font-semibold block mb-2">Hari</label>
-
                 <select
                   value={formData.Hari}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      Hari: e.target.value,
-                    })
+                    setFormData({ ...formData, Hari: e.target.value })
                   }
                   className="w-full border rounded-lg p-3"
                 >
@@ -363,22 +372,19 @@ export default function AdminJadwalPage() {
 
               <div>
                 <label className="font-semibold block mb-2">Jam</label>
-
                 <select
                   value={formData.Jam}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      Jam: e.target.value,
-                    })
+                    setFormData({ ...formData, Jam: e.target.value })
                   }
                   className="w-full border rounded-lg p-3"
                 >
                   <option value="">Pilih Jam</option>
-                  <option value="07:00 - 09:00">07:00 - 09:00</option>
-                  <option value="09:00 - 11:00">09:00 - 11:00</option>
-                  <option value="11:00 - 13:00">11:00 - 13:00</option>
-                  <option value="13:00 - 15:00">13:00 - 15:00</option>
+                  {jamList.map((j) => (
+                    <option key={j} value={j}>
+                      {j}
+                    </option>
+                  ))}
                 </select>
               </div>
 
