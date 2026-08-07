@@ -22,6 +22,10 @@ export default function AdminSiswaSakitPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // --- State Pagination ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // --- State Modal Export Laporan ---
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel">("pdf");
@@ -71,6 +75,11 @@ export default function AdminSiswaSakitPage() {
     fetchDataSiswa();
   }, []);
 
+  // Reset page ke 1 saat melakukan pencarian
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   // Buka Modal Konfirmasi Hapus
   const openDeleteModal = (id: number, documentId?: string) => {
     setSelectedDeleteItem({ id, documentId });
@@ -99,50 +108,47 @@ export default function AdminSiswaSakitPage() {
     }
   };
 
-  // Eksekusi Export Laporan
   // Eksekusi Export Laporan Langsung ke Excel
   const handleExportSubmit = () => {
-    // 1. Cek pilihan format
     if (exportFormat === "excel") {
-      // Ganti 'dataSiswa' dengan variabel penampung data tabel yang ada di halamanmu
       let dataToExport = dataSiswa;
 
-      // Filter berdasarkan tanggal jika diisi (opsional)
       if (startDate && endDate) {
         dataToExport = dataToExport.filter((item) => {
-          // Sesuaikan 'item.tanggal' dengan nama field tanggal di datamu
           const itemDate = item.tanggal;
           return itemDate >= startDate && itemDate <= endDate;
         });
       }
 
-      // Pastikan ada data yang mau diexport
       if (!dataToExport || dataToExport.length === 0) {
         alert("Tidak ada data untuk diexport!");
         return;
       }
 
-      // 2. Proses pembuatan file Excel menggunakan library xlsx
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Data");
 
-      // 3. Download file Excel secara otomatis ke komputer
       XLSX.writeFile(workbook, "Laporan_GridasCare.xlsx");
     } else if (exportFormat === "pdf") {
-      // Logika untuk PDF (jika nanti mau ditambahkan)
       alert("Format PDF belum diatur.");
     }
 
-    // 4. Tutup pop-up modal setelah tombol diklik
     setShowExportModal(false);
   };
+
   const filteredData = dataSiswa.filter(
     (item) =>
       item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.tanggal.includes(searchQuery) ||
       item.kelas.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  // --- Logika Slice untuk Pagination ---
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
     <div className="p-10 w-full bg-white min-h-screen relative">
@@ -226,11 +232,11 @@ export default function AdminSiswaSakitPage() {
                     Memuat data dari Strapi...
                   </td>
                 </tr>
-              ) : filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
+              ) : currentData.length > 0 ? (
+                currentData.map((item, index) => (
                   <tr key={item.id} className="hover:bg-blue-50/50 transition">
                     <td className="px-4 py-3 text-center font-semibold text-gray-500">
-                      {index + 1}
+                      {indexOfFirstItem + index + 1}
                     </td>
                     <td className="px-4 py-3 font-bold text-slate-900">
                       {item.nama}
@@ -283,8 +289,8 @@ export default function AdminSiswaSakitPage() {
         <div className="lg:hidden space-y-4 mt-5">
           {loading ? (
             <div className="text-center py-6">Memuat data...</div>
-          ) : filteredData.length > 0 ? (
-            filteredData.map((item) => (
+          ) : currentData.length > 0 ? (
+            currentData.map((item) => (
               <div
                 key={item.id}
                 className="bg-white rounded-2xl shadow border border-gray-200 p-4"
@@ -325,13 +331,58 @@ export default function AdminSiswaSakitPage() {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-between items-center mt-6 px-2">
+            <span className="text-xs text-gray-600">
+              Menampilkan {indexOfFirstItem + 1} -{" "}
+              {Math.min(indexOfLastItem, filteredData.length)} dari{" "}
+              {filteredData.length} data
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+              >
+                Sebelumnya
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        currentPage === page
+                          ? "bg-[#3B91FF] text-white"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+              </div>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+              >
+                Selanjutnya
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ==================== POP UP EXPORT LAPORAN ==================== */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
-            {/* Header Modal */}
             <div className="bg-[#0B3A60] px-6 py-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2 font-bold text-lg">
                 <div className="relative w-6 h-6 shrink-0">
@@ -354,20 +405,19 @@ export default function AdminSiswaSakitPage() {
               </button>
             </div>
 
-            {/* Body Modal */}
             <div className="p-6">
               <h3 className="font-bold text-black text-lg mb-4">
                 Pilih Format Export Laporan
               </h3>
 
-              {/* Opsi Pilihan PDF / Excel */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div
                   onClick={() => setExportFormat("pdf")}
-                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
+                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${
+                    exportFormat === "pdf"
                       ? "border-blue-600 bg-blue-50/30"
                       : "border-gray-800 hover:border-blue-400"
-                    }`}
+                  }`}
                 >
                   <div className="w-12 h-12 flex items-center justify-center mb-2">
                     <svg
@@ -378,17 +428,17 @@ export default function AdminSiswaSakitPage() {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
+                        fillRule="evenodd"
+                        clipRule="evenodd"
                         d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z"
                         fill="#1447E6"
                       />
                       <path
                         d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z"
                         fill="white"
-                        fill-opacity="0.3"
+                        fillOpacity="0.3"
                       />
-                      <g clip-path="url(#clip0_867_4725)">
+                      <g clipPath="url(#clip0_867_4725)">
                         <path
                           d="M26.8903 25.8319C25.8147 24.6816 22.8775 25.1503 22.1743 25.2355C21.1401 24.2129 20.4369 22.9774 20.1887 22.5514C20.561 21.4011 20.8091 20.2508 20.8505 19.0154C20.8505 17.9502 20.4369 16.8 19.2785 16.8C18.8648 16.8 18.4925 17.0555 18.2856 17.3964C17.7892 18.2911 17.996 20.0805 18.782 21.9125C18.327 23.2331 17.9133 24.5112 16.755 26.7693C15.5553 27.2804 13.0318 28.4734 12.825 29.7515C12.7422 30.1349 12.8663 30.5185 13.1559 30.8166C13.4455 31.0722 13.8178 31.2 14.1901 31.2C15.7207 31.2 17.21 29.0273 18.2442 27.1952C19.113 26.897 20.4782 26.471 21.8433 26.2153C23.4567 27.6639 24.8632 27.8768 25.6079 27.8768C26.6007 27.8768 26.9731 27.4508 27.0971 27.0673C27.3039 26.6414 27.1798 26.1727 26.8903 25.8319ZM25.856 26.5562C25.8147 26.8545 25.4425 27.1526 24.7805 26.9822C23.9945 26.7693 23.2912 26.3858 22.6707 25.8745C23.2085 25.7892 24.4081 25.6615 25.2769 25.8319C25.6079 25.9171 25.9388 26.1301 25.856 26.5562ZM18.9476 17.7798C19.0303 17.652 19.1544 17.5668 19.2785 17.5668C19.6508 17.5668 19.7335 18.0354 19.7335 18.4189C19.6921 19.3137 19.5266 20.2083 19.2371 21.0604C18.6165 19.3562 18.7407 18.1632 18.9476 17.7798ZM18.8648 26.045C19.1958 25.3633 19.6509 24.1703 19.8163 23.659C20.1886 24.298 20.8091 25.065 21.1401 25.4058C21.1401 25.4485 19.8577 25.704 18.8648 26.045ZM16.4241 27.7491C15.4726 29.368 14.4797 30.3905 13.9419 30.3905C13.8592 30.3905 13.7764 30.3479 13.6937 30.3053C13.5695 30.22 13.5282 30.0923 13.5695 29.9219C13.6937 29.3255 14.7693 28.516 16.4241 27.7491Z"
                           fill="white"
@@ -414,10 +464,11 @@ export default function AdminSiswaSakitPage() {
 
                 <div
                   onClick={() => setExportFormat("excel")}
-                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
+                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${
+                    exportFormat === "excel"
                       ? "border-green-600 bg-green-50/30"
                       : "border-gray-800 hover:border-green-400"
-                    }`}
+                  }`}
                 >
                   <div className="w-12 h-12 flex items-center justify-center mb-2">
                     <svg
@@ -428,19 +479,19 @@ export default function AdminSiswaSakitPage() {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
+                        fillRule="evenodd"
+                        clipRule="evenodd"
                         d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z"
                         fill="#079455"
                       />
                       <path
                         d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z"
                         fill="white"
-                        fill-opacity="0.3"
+                        fillOpacity="0.3"
                       />
                       <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
+                        fillRule="evenodd"
+                        clipRule="evenodd"
                         d="M17.5383 18.2857C16.1396 18.2857 15.5229 18.4089 14.897 18.7437C14.3398 19.0417 13.899 19.4824 13.601 20.0397C13.2663 20.6656 13.1431 21.2822 13.1431 22.681V25.3191C13.1431 26.7178 13.2663 27.3344 13.601 27.9603C13.899 28.5176 14.3398 28.9583 14.897 29.2564C15.5229 29.5911 16.1396 29.7143 17.5383 29.7143H22.4621C23.8608 29.7143 24.4775 29.5911 25.1034 29.2564C25.6606 28.9583 26.1014 28.5176 26.3994 27.9603C26.7341 27.3344 26.8574 26.7178 26.8574 25.3191V22.681C26.8574 21.2822 26.7341 20.6656 26.3994 20.0397C26.1014 19.4824 25.6606 19.0417 25.1034 18.7437C24.4775 18.4089 23.8608 18.2857 22.4621 18.2857H17.5383ZM15.436 19.7514C15.8136 19.5495 16.204 19.4286 17.5383 19.4286H19.4288V21.7143H14.3171C14.3653 21.1149 14.4671 20.8436 14.6088 20.5787C14.8003 20.2206 15.0779 19.943 15.436 19.7514ZM19.4288 22.8571H14.2859V25.1429H19.4288V22.8571ZM20.5716 25.1429V22.8571H25.7145V25.1429H20.5716ZM19.4288 26.2857H14.3171C14.3653 26.8851 14.4671 27.1564 14.6088 27.4213C14.8003 27.7794 15.0779 28.0571 15.436 28.2486C15.8136 28.4505 16.204 28.5714 17.5383 28.5714H19.4288V26.2857ZM20.5716 28.5714V26.2857H25.6833C25.6351 26.8851 25.5333 27.1564 25.3916 27.4213C25.2001 27.7794 24.9225 28.0571 24.5644 28.2486C24.1868 28.4505 23.7964 28.5714 22.4621 28.5714H20.5716ZM20.5716 21.7143V19.4286H22.4621C23.7964 19.4286 24.1868 19.5495 24.5644 19.7514C24.9225 19.943 25.2001 20.2206 25.3916 20.5787C25.5333 20.8436 25.6351 21.1149 25.6833 21.7143H20.5716Z"
                         fill="white"
                       />
@@ -453,7 +504,6 @@ export default function AdminSiswaSakitPage() {
                 </div>
               </div>
 
-              {/* Rentang Tanggal */}
               <h4 className="font-bold text-black text-md mb-2">
                 Rentang Tanggal{" "}
                 <span className="font-normal text-gray-500 text-sm">
@@ -486,7 +536,6 @@ export default function AdminSiswaSakitPage() {
                 </div>
               </div>
 
-              {/* Tombol Aksi Export */}
               <div className="flex justify-between items-center gap-4">
                 <button
                   onClick={handleExportSubmit}
