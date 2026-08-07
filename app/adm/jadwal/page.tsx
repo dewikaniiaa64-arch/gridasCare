@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { IoArrowBack } from "react-icons/io5"
+import { useEffect, useState } from "react";
+import { IoArrowBack } from "react-icons/io5";
 
 export default function AdminJadwalPage() {
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
@@ -14,12 +14,12 @@ export default function AdminJadwalPage() {
     Jam: "",
   });
 
-  const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at"];
+  const hariList = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
   const jamList = [
     "07:00 - 09:00",
     "09:00 - 11:00",
     "11:00 - 13:00",
-    "13:00 - 15:00"
+    "13:00 - 15:00",
   ];
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function AdminJadwalPage() {
   const fetchJadwal = async () => {
     try {
       const res = await fetch(
-        'https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss?populate=*'
+        "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss?populate=*",
       );
 
       if (!res.ok) throw new Error();
@@ -38,33 +38,35 @@ export default function AdminJadwalPage() {
 
       setDataJadwal(result.data || []);
     } catch (error) {
-      console.log('Backend belum tersambung');
+      console.log("Backend belum tersambung");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Hapus data?')) return;
+    if (!confirm("Hapus data?")) return;
 
     try {
       await fetch(
         `https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss/${id}`,
         {
-          method: 'DELETE',
-        }
+          method: "DELETE",
+        },
       );
 
       fetchJadwal();
     } catch (error) {
-      alert('Gagal menghapus');
+      alert("Gagal menghapus");
     }
   };
 
   const handleSave = async () => {
     try {
       if (!formData.Hari || !formData.Jam) {
-        alert("Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!");
+        alert(
+          "Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!",
+        );
         return;
       }
 
@@ -76,9 +78,15 @@ export default function AdminJadwalPage() {
       const targetItem = dataJadwal.find((item: any) => {
         const attr = item.attributes || item;
         const dbJamMulai = attr.Jam_Mulai ? attr.Jam_Mulai.slice(0, 5) : "";
-        const dbJamSelesai = attr.Jam_Selesai ? attr.Jam_Selesai.slice(0, 5) : "";
+        const dbJamSelesai = attr.Jam_Selesai
+          ? attr.Jam_Selesai.slice(0, 5)
+          : "";
 
-        return attr.Hari === formData.Hari && dbJamMulai === jamMulai && dbJamSelesai === jamSelesai;
+        return (
+          attr.Hari === formData.Hari &&
+          dbJamMulai === jamMulai &&
+          dbJamSelesai === jamSelesai
+        );
       });
 
       let res;
@@ -98,7 +106,7 @@ export default function AdminJadwalPage() {
                 Jabatan: formData.Jabatan,
               },
             }),
-          }
+          },
         );
       } else {
         // 3. Jika belum ada, buat baru (POST)
@@ -118,7 +126,7 @@ export default function AdminJadwalPage() {
                 Jam_Selesai: jamSelesaiFormat,
               },
             }),
-          }
+          },
         );
       }
 
@@ -139,7 +147,6 @@ export default function AdminJadwalPage() {
       });
 
       fetchJadwal();
-
     } catch (error) {
       console.log(error);
       alert("Gagal menyimpan data");
@@ -148,12 +155,9 @@ export default function AdminJadwalPage() {
 
   return (
     <div className="w-full">
-
       {/* Judul */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold text-[#3B91FF]">
-          Jadwal Petugas
-        </h1>
+        <h1 className="text-4xl font-bold text-[#3B91FF]">Jadwal Petugas</h1>
 
         <button
           onClick={() => setOpenModal(true)}
@@ -166,13 +170,7 @@ export default function AdminJadwalPage() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <circle
-              cx="15"
-              cy="15"
-              r="11.25"
-              stroke="white"
-              strokeWidth="2"
-            />
+            <circle cx="15" cy="15" r="11.25" stroke="white" strokeWidth="2" />
             <path
               d="M15 18.75L15 11.25"
               stroke="white"
@@ -193,11 +191,9 @@ export default function AdminJadwalPage() {
       {/* Container */}
       <div className="bg-[#EAEFF5] rounded-3xl p-5 shadow">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-
           {hariList.map((hari) => {
             return (
               <div key={hari} className="rounded-2xl overflow-hidden shadow">
-
                 {/* Header Hari */}
                 <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
                   <img
@@ -220,15 +216,20 @@ export default function AdminJadwalPage() {
                       const matchedItem = dataJadwal.find((item: any) => {
                         const attr = item.attributes || item;
                         const itemHari = attr.Hari;
-                        const dbJamMulai = attr.Jam_Mulai ? attr.Jam_Mulai.slice(0, 5) : "";
+                        const dbJamMulai = attr.Jam_Mulai
+                          ? attr.Jam_Mulai.slice(0, 5)
+                          : "";
 
                         return (
-                          (itemHari === hari || itemHari === hari.replace("'", "")) &&
+                          (itemHari === hari ||
+                            itemHari === hari.replace("'", "")) &&
                           dbJamMulai === slotMulai
                         );
                       });
 
-                      const attr = matchedItem ? (matchedItem.attributes || matchedItem) : null;
+                      const attr = matchedItem
+                        ? matchedItem.attributes || matchedItem
+                        : null;
 
                       return (
                         <div key={jamSlot} className="p-4 border-b bg-blue-300">
@@ -269,12 +270,18 @@ export default function AdminJadwalPage() {
                             <div className="flex-1">
                               {attr ? (
                                 <>
-                                  <p className="font-bold text-sm">{attr.Nama}</p>
-                                  <p className="text-sm text-gray-700">{attr.Jabatan}</p>
+                                  <p className="font-bold text-sm">
+                                    {attr.Nama}
+                                  </p>
+                                  <p className="text-sm text-gray-700">
+                                    {attr.Jabatan}
+                                  </p>
                                 </>
                               ) : (
                                 <>
-                                  <p className="font-bold text-sm">Belum ada data</p>
+                                  <p className="font-bold text-sm">
+                                    Belum ada data
+                                  </p>
                                   <p className="text-sm text-gray-700">-</p>
                                 </>
                               )}
@@ -294,11 +301,9 @@ export default function AdminJadwalPage() {
                     })
                   )}
                 </div>
-
               </div>
             );
           })}
-
         </div>
       </div>
 
@@ -306,7 +311,6 @@ export default function AdminJadwalPage() {
       {openModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="relative bg-white w-[500px] rounded-[28px] p-8 shadow-2xl">
-
             <button
               onClick={() => setOpenModal(false)}
               className="absolute top-8 left-12 text-[#2563EB]"
@@ -377,7 +381,9 @@ export default function AdminJadwalPage() {
                 >
                   <option value="">Pilih Jam</option>
                   {jamList.map((j) => (
-                    <option key={j} value={j}>{j}</option>
+                    <option key={j} value={j}>
+                      {j}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -391,7 +397,6 @@ export default function AdminJadwalPage() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}

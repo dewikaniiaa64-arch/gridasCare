@@ -114,6 +114,7 @@ export default function PertolonganPage() {
                   data?.Gambar?.url ||
                   data?.gambar?.data?.attributes?.url ||
                   data?.gambar?.url;
+                  
                 const strapiUrl =
                   process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
                 let image = "/images/luka.png"; // Fallback
