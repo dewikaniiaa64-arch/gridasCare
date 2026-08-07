@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Fungsi penanganan logout sebenarnya
   const handleConfirmLogout = () => {
     setShowLogoutModal(false);
-    router.push('/login');
+    router.push('http://localhost:3000/');
   };
 
   return (
