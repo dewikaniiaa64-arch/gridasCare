@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import Navbar from "@/components/organisms/Navbar";
+import Footer from "@/components/organisms/Footer";
 import './globals.css';
 
 // PERHATIKAN: Pakai "export default function"
