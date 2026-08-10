@@ -90,36 +90,30 @@ export default function ObatObatanPage() {
       }}
     >
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between mb-10 md:mb-12 gap-6">
-        <div className="text-center md:text-left flex flex-col items-center md:items-start max-w-md">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0A405A] mb-3">
-            Obat - Obatan
-          </h1>
+<div className="max-w-7xl mx-auto flex flex-col items-center text-center mb-8">
 
-          <div className="w-56 h-32 relative my-2 md:hidden">
-            <Image
-              src="/images/obet.png"
-              alt="Ilustrasi Obat"
-              fill
-              className="object-contain"
-            />
-          </div>
+  {/* Foto Obat */}
+  <div className="w-56 h-40 md:w-72 md:h-48 relative mb-3">
+    <Image
+      src="/images/obet.png"
+      alt="Ilustrasi Obat"
+      fill
+      className="object-contain"
+    />
+  </div>
 
-          <p className="text-gray-700 text-sm md:text-base leading-relaxed">
-            Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
-            ringan.
-          </p>
-        </div>
+  {/* Judul */}
+  <h1 className="text-3xl md:text-4xl font-bold text-[#0A405A] mb-3">
+    Obat - Obatan
+  </h1>
 
-        <div className="hidden md:block w-72 lg:w-80 h-44 relative shrink-0">
-          <Image
-            src="/images/obet.png"
-            alt="Ilustrasi Obat"
-            fill
-            className="object-contain"
-          />
-        </div>
-      </div>
+  {/* Deskripsi */}
+  <p className="text-gray-700 text-sm md:text-base leading-relaxed max-w-xl">
+    Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
+    ringan.
+  </p>
+
+</div>
 
       {loading && (
         <div className="text-center py-12 text-[#0A405A] font-semibold text-lg">
