@@ -1,205 +1,848 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-export default function SiswaSakitPage() {
-  const [dataSiswa, setDataSiswa] = useState([
-    { id: 1, nama: 'Zhang Linghe', kelas: 'XI-PPLG 5', keluhan: 'Pusing', tanggal: '03/02/2016', penanganan: 'Minum Obat' },
-    { id: 2, nama: 'Lu Xixaou', kelas: 'XI-MIPA 1', keluhan: 'Sakit Perut', tanggal: '04/02/2017', penanganan: 'Minum Promag' },
-  ]);
+const STRAPI_URL =
+  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+interface SiswaSakitItem {
+  id: number;
+  documentId?: string;
+  nama: string;
+  kelas: string;
+  keluhan: string;
+  tanggal: string;
+  penanganan: string;
+  status: string;
+}
 
-  const confirmDelete = (id: number) => {
-    setSelectedId(id);
-    setShowConfirmModal(true);
-  };
+const STATUS_OPTIONS = [
+  "Istirahat di UKS",
+  "Kembali ke Kelas",
+  "Dipulangkan",
+  "Rujukan RS",
+];
 
-  const handleDeleteYes = () => {
-    if (selectedId !== null) {
-      setDataSiswa(dataSiswa.filter((item) => item.id !== selectedId));
+export default function AdminSiswaSakitPage() {
+  const [dataSiswa, setDataSiswa] = useState<SiswaSakitItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // PAGINATION
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // EXPORT
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel">("pdf");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // DETAIL
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SiswaSakitItem | null>(null);
+
+  // EDIT STATUS
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEditItem, setSelectedEditItem] = useState<SiswaSakitItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState("Istirahat di UKS");
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  // DELETE
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDeleteItem, setSelectedDeleteItem] = useState<{
+    id: number;
+    documentId?: string;
+  } | null>(null);
+
+  // FETCH DATA DARI STRAPI
+  const fetchDataSiswa = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*`);
+
+      if (!res.ok) {
+        throw new Error("Gagal mengambil data dari Strapi");
+      }
+
+      const result = await res.json();
+      const rawData = result.data || [];
+
+      const formatted: SiswaSakitItem[] = rawData.map((item: any) => {
+        const attr = item.attributes || item;
+
+        return {
+          id: item.id,
+          documentId: item.documentId,
+          nama: attr.Nama || attr.nama || "-",
+          kelas: attr.Kelas || attr.kelas || "-",
+          keluhan: attr.Keluhan || attr.keluhan || "-",
+          tanggal: attr.Tanggal || attr.tanggal || "-",
+          penanganan: attr.Penanganan || attr.penanganan || "-",
+          status: attr.Status_Siswa || attr.status_siswa || attr.Status || "Istirahat di UKS",
+        };
+      });
+
+      setDataSiswa(formatted);
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+    } finally {
+      setLoading(false);
     }
-    setShowConfirmModal(false);
-    setSelectedId(null);
   };
 
-  const handleDeleteNo = () => {
-    setShowConfirmModal(false);
-    setSelectedId(null);
+  useEffect(() => {
+    fetchDataSiswa();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // STATUS STYLE
+  const getStatusStyle = (status: string) => {
+    const cleanStatus = status.trim();
+    switch (cleanStatus) {
+      case "Istirahat di UKS":
+        return "bg-yellow-100 text-yellow-700";
+      case "Kembali ke Kelas":
+        return "bg-green-100 text-green-700";
+      case "Dipulangkan":
+        return "bg-red-100 text-red-700";
+      case "Rujukan RS":
+        return "bg-blue-100 text-blue-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
   };
 
+  const getStatusDot = (status: string) => {
+    const cleanStatus = status.trim();
+    switch (cleanStatus) {
+      case "Istirahat di UKS":
+        return "bg-yellow-500";
+      case "Kembali ke Kelas":
+        return "bg-green-500";
+      case "Dipulangkan":
+        return "bg-red-500";
+      case "Rujukan RS":
+        return "bg-blue-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // MODAL HANDLERS
+  const openDetailModal = (item: SiswaSakitItem) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
+  };
+
+  const openEditModal = (item: SiswaSakitItem) => {
+    setSelectedEditItem(item);
+    setSelectedStatus(item.status || "Istirahat di UKS");
+    setShowEditModal(true);
+  };
+
+  const updateStatus = async () => {
+    if (!selectedEditItem) return;
+
+    try {
+      setSavingStatus(true);
+      const targetId = selectedEditItem.documentId || selectedEditItem.id;
+
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits/${targetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            Status_Siswa: selectedStatus
+          },
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        const errorMsg = result?.error?.message || "Gagal mengubah status";
+        throw new Error(errorMsg);
+      }
+
+      alert("Status siswa berhasil diperbarui.");
+      setShowEditModal(false);
+      setSelectedEditItem(null);
+      await fetchDataSiswa();
+    } catch (error: any) {
+      console.error("Error update status:", error);
+      alert(`Gagal mengubah status siswa: ${error.message || "Periksa koneksi Strapi"}`);
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
+  const openDeleteModal = (id: number, documentId?: string) => {
+    setSelectedDeleteItem({ id, documentId });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedDeleteItem) return;
+
+    try {
+      const targetId = selectedDeleteItem.documentId || selectedDeleteItem.id;
+
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits/${targetId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Gagal menghapus data");
+
+      alert("Data berhasil dihapus.");
+      await fetchDataSiswa();
+    } catch (error) {
+      console.error("Error deleting:", error);
+      alert("Terjadi kesalahan saat menghapus data.");
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedDeleteItem(null);
+    }
+  };
+
+  // EXPORT FUNCTION
+  const handleExportSubmit = () => {
+    let dataToExport = dataSiswa;
+
+    if (startDate && endDate) {
+      dataToExport = dataToExport.filter((item) => {
+        const itemDate = item.tanggal;
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    }
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert("Tidak ada data untuk diexport!");
+      return;
+    }
+
+    if (exportFormat === "excel") {
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Data");
+      XLSX.writeFile(workbook, "Laporan_GridasCare.xlsx");
+    } else if (exportFormat === "pdf") {
+      const doc = new jsPDF();
+
+      try {
+        const logoUrl = "/images/pmi.png";
+        doc.addImage(logoUrl, "PNG", 14, 12, 12, 12);
+      } catch (err) {
+        console.log("Logo tidak ditemukan:", err);
+      }
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Laporan Data Siswa Sakit", 30, 18);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text("GridasCare - Unit Kesehatan Sekolah", 30, 24);
+
+      if (startDate && endDate) {
+        doc.setFontSize(9);
+        doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 34);
+      }
+
+      const tableData = dataToExport.map((item, index) => [
+        index + 1,
+        item.nama,
+        item.kelas,
+        item.keluhan,
+        item.tanggal,
+        item.penanganan,
+        item.status.trim(),
+      ]);
+
+      autoTable(doc, {
+        startY: startDate && endDate ? 40 : 32,
+        head: [
+          ["No", "Nama", "Kelas", "Keluhan", "Tanggal", "Penanganan", "Status"],
+        ],
+        body: tableData,
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: {
+          fillColor: [11, 58, 96],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        alternateRowStyles: { fillColor: [245, 248, 252] },
+      });
+
+      doc.save("Laporan_GridasCare.pdf");
+    }
+
+    setShowExportModal(false);
+  };
+
+  const generateSuratPDF = (item: SiswaSakitItem) => {
+    const doc = new jsPDF();
+    const isDipulangkan = item.status.trim() === "Dipulangkan";
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("SMK NEGERI 2 SUMEDANG", 105, 18, { align: "center" });
+    doc.setFontSize(12);
+    doc.text("UNIT KESEHATAN SEKOLAH (UKS)", 105, 25, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Jl. Arief Rakhman Hakim NO. 59 Sumedang ", 105, 30, { align: "center" });
+
+    doc.setLineWidth(0.8);
+    doc.line(20, 34, 190, 34);
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    const judulSurat = isDipulangkan
+      ? "SURAT KETERANGAN IZIN PULANG KARENA SAKIT"
+      : "SURAT RUJUKAN KESEHATAN";
+    doc.text(judulSurat, 105, 45, { align: "center" });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Yang bertanda tangan di bawah ini Petugas UKS menerangkan bahwa:", 20, 58);
+
+    doc.text(`Nama Lengkap   : ${item.nama}`, 25, 68);
+    doc.text(`Kelas                : ${item.kelas}`, 25, 75);
+    doc.text(`Keluhan / Sakit   : ${item.keluhan}`, 25, 82);
+    doc.text(`Tanggal / Waktu  : ${item.tanggal}`, 25, 89);
+    doc.text(`Penanganan      : ${item.penanganan}`, 25, 96);
+
+    const deskripsi = isDipulangkan
+      ? "Siswa tersebut di atas dinyatakan perlu DIPULANGKAN untuk beristirahat di rumah/penanganan lebih lanjut oleh orang tua."
+      : "Siswa tersebut di atas perlu DIRUJUK ke Fasilitas Kesehatan / Rumah Sakit untuk penanganan medis lebih lanjut.";
+
+    doc.text(deskripsi, 20, 110, { maxWidth: 170 });
+    doc.text("Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.", 20, 125);
+
+    doc.text("Sumedang, " + item.tanggal.split(" ")[0], 140, 145);
+    doc.text("Petugas UKS,", 140, 152);
+    doc.text("( ..................................... )", 140, 180);
+
+    const namaFile = isDipulangkan
+      ? `Surat_Izin_Pulang_${item.nama.replace(/\s+/g, "_")}.pdf`
+      : `Surat_Rujukan_${item.nama.replace(/\s+/g, "_")}.pdf`;
+
+    doc.save(namaFile);
+  };
+
+  // FILTER & PAGINATION
   const filteredData = dataSiswa.filter(
     (item) =>
-      item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tanggal.includes(searchTerm)
+      item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.tanggal.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.kelas.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.keluhan.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
   return (
-    <div className="px-4 py-6 sm:p-10 bg-white min-h-full relative overflow-x-hidden">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#3b82f6] mb-6 sm:mb-8 text-center sm:text-left">
-        Data Siswa Sakit
+    <div className="p-4 sm:p-6 md:p-10 w-full bg-white min-h-screen relative">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#3B91FF] mb-4 sm:mb-6">
+        Riwayat Siswa Sakit
       </h1>
 
-      <div className="bg-gray-100 p-3 sm:p-6 rounded-2xl shadow-inner max-w-5xl mx-auto">
-        {/* Baris Pencarian & Tombol Ekspor */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-3">
+      <div className="bg-[#EAEFF5] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        {/* SEARCH + EXPORT */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
           <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clipPath="url(#clip0_714_2482)">
-                  <path d="M1.47205 13.357C1.93756 14.4523 2.61426 15.4453 3.46352 16.2791C4.31277 17.1129 5.31794 17.7713 6.42165 18.2167C7.52535 18.6621 8.70596 18.8857 9.89609 18.8748C11.0862 18.8639 12.2625 18.6187 13.3579 18.1532C14.4532 17.6876 15.4462 17.0109 16.28 16.1617C17.1138 15.3124 17.7722 14.3072 18.2176 13.2035C18.663 12.0998 18.8866 10.9192 18.8757 9.7291C18.8648 8.53898 18.6195 7.36266 18.154 6.2673C17.6885 5.17194 17.0118 4.179 16.1626 3.34517C15.3133 2.51133 14.3081 1.85294 13.2044 1.40757C12.1007 0.962206 10.9201 0.738591 9.72999 0.749495C8.53987 0.7604 7.36355 1.00561 6.26819 1.47113C5.17284 1.93664 4.1799 2.61334 3.34607 3.4626C2.51223 4.31186 1.85384 5.31703 1.40848 6.42073C0.963115 7.52444 0.739503 8.70506 0.750411 9.89518C0.761319 11.0853 1.00653 12.2616 1.47205 13.357Z" stroke="black" stroke-opacity="0.7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M16.221 16.22L23.25 23.25" stroke="black" stroke-opacity="0.7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </g>
-                <defs>
-                  <clipPath id="clip0_714_2482">
-                    <rect width="24" height="24" fill="white"/>
-                  </clipPath>
-                </defs>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </span>
             <input
               type="text"
-              placeholder="Cari siswa/Tanggal"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Cari siswa/tanggal/kelas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white rounded-full border border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
             />
           </div>
 
           <button
-            onClick={() => alert('Laporan berhasil diexport!')}
-            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-950 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow transition"
+            onClick={() => setShowExportModal(true)}
+            className="bg-[#0D2840] text-white px-5 py-2.5 sm:py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
           >
-            <svg width="24" height="24" viewBox="0 0 40 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M31.7998 11.667C32.9199 11.667 33.4804 11.6668 33.9082 11.8848C34.2844 12.0765 34.5905 12.3825 34.7822 12.7588C35.0001 13.1865 35 13.7466 35 14.8662V25.9668C35 27.0864 35 27.6465 34.7822 28.0742C34.5905 28.4504 34.2844 28.7565 33.9082 28.9482C33.4804 29.1662 32.9199 29.167 31.7998 29.167H8.2002C7.08009 29.167 6.51962 29.1662 6.0918 28.9482C5.71563 28.7565 5.40946 28.4504 5.21777 28.0742C5.00001 27.6465 5 27.0864 5 25.9668V11.667H31.7998ZM17.499 22.0039L13.9912 18.9355L13.333 19.6875L12.6748 20.4404L16.8408 24.0859L17.5 24.6621L18.1582 24.0859L26.4912 16.7949L25.1748 15.2891L17.499 22.0039Z" fill="white"/>
-              <path d="M5 11.2917C5 9.40605 5 8.46324 5.58579 7.87746C6.17157 7.29167 7.11438 7.29167 9 7.29167H15.1637C15.9069 7.29167 16.2785 7.29167 16.6187 7.41947C16.9588 7.54726 17.2384 7.79196 17.7777 8.28136L21.6667 11.6667H5V11.2917Z" fill="white"/>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 40 35"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M31.7998 11.667C32.9199 11.667 33.4804 11.6668 33.9082 11.8848C34.2844 12.0765 34.5905 12.3825 34.7822 12.7588C35.0001 13.1865 35 13.7466 35 14.8662V25.9668C35 27.0864 35 27.6465 34.7822 28.0742C34.5905 28.4504 34.2844 28.7565 33.9082 28.9482C33.4804 29.1662 32.9199 29.167 31.7998 29.167H8.2002C7.08009 29.167 6.51962 29.1662 6.0918 28.9482C5.71563 28.7565 5.40946 28.4504 5.21777 28.0742C5.00001 27.6465 5 27.0864 5 25.9668V11.667H31.7998ZM17.499 22.0039L13.9912 18.9355L13.333 19.6875L12.6748 20.4404L16.8408 24.0859L17.5 24.6621L18.1582 24.0859L26.4912 16.7949L25.1748 15.2891L17.499 22.0039Z"
+                fill="white"
+              />
+              <path
+                d="M5 11.2917C5 9.40605 5 8.46324 5.58579 7.87745C6.17157 7.29166 7.11438 7.29166 9 7.29166H15.1637C15.9069 7.29166 16.2785 7.29166 16.6187 7.41946C16.9588 7.54725 17.2384 7.79195 17.7977 8.28136L21.6667 11.6667H5V11.2917Z"
+                fill="white"
+              />
             </svg>
             Export Laporan
           </button>
         </div>
 
-        {/* Tabel Data dengan Pembungkus overflow-x-auto agar bisa digeser horizontal */}
-        <div className="hidden sm:block bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto rounded-xl">
-            <table className="w-full text-left border-collapse min-w-[750px]">
-              <thead>
-                <tr className="bg-[#bfdbfe] text-gray-800 text-sm font-bold border-b border-gray-200">
-                  <th className="py-3 px-4 text-center w-16">No</th>
-                  <th className="py-3 px-4">Nama</th>
-                  <th className="py-3 px-4">Kelas</th>
-                  <th className="py-3 px-4">Keluhan</th>
-                  <th className="py-3 px-4">Tanggal</th>
-                  <th className="py-3 px-4">Penanganan</th>
-                  <th className="py-3 px-4 text-center w-20">Aksi</th>
+        {/* TABEL DESKTOP (Layar Besar) */}
+        <div className="hidden lg:block bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#93C5FD] text-[#0D2840] text-xs font-bold uppercase tracking-wider border-b border-blue-200">
+                <th className="px-4 py-3.5 text-center w-12">No</th>
+                <th className="px-4 py-3.5">Nama</th>
+                <th className="px-4 py-3.5">Kelas</th>
+                <th className="px-4 py-3.5">Keluhan</th>
+                <th className="px-4 py-3.5">Tanggal & Waktu</th>
+                <th className="px-4 py-3.5">Penanganan</th>
+                <th className="px-4 py-3.5 text-center">Status</th>
+                <th className="px-4 py-3.5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                    Memuat data dari Strapi...
+                  </td>
                 </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
-                {filteredData.length > 0 ? (
-                  filteredData.map((item, index) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4 text-center">{index + 1}</td>
-                      <td className="py-3 px-4 font-medium">{item.nama}</td>
-                      <td className="py-3 px-4">{item.kelas}</td>
-                      <td className="py-3 px-4">{item.keluhan}</td>
-                      <td className="py-3 px-4">{item.tanggal}</td>
-                      <td className="py-3 px-4">{item.penanganan}</td>
-                      <td className="py-3 px-4 text-center">
+              ) : currentData.length > 0 ? (
+                currentData.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-blue-50/50 transition">
+                    <td className="px-4 py-3 text-center font-semibold text-gray-500">
+                      {indexOfFirstItem + index + 1}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-slate-900">
+                      {item.nama}
+                    </td>
+                    <td className="px-4 py-3">{item.kelas}</td>
+                    <td className="px-4 py-3">{item.keluhan}</td>
+                    <td className="px-4 py-3">{item.tanggal}</td>
+                    <td className="px-4 py-3">{item.penanganan}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold whitespace-nowrap ${getStatusStyle(
+                          item.status
+                        )}`}
+                      >
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full ${getStatusDot(
+                            item.status
+                          )}`}
+                        />
+                        {item.status.trim()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => confirmDelete(item.id)}
-                          className="text-red-500 hover:text-red-700 p-1 rounded transition inline-flex items-center justify-center"
-                          title="Hapus"
+                          onClick={() => openDetailModal(item)}
+                          className="border border-gray-300 bg-white text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-semibold"
                         >
-                          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19.2501 8.25C18.2376 8.25 17.4172 9.07064 17.4171 10.083V13.25C17.4171 16.0783 17.4167 17.4924 16.5381 18.3711C15.6595 19.2497 14.2453 19.25 11.4171 19.25H10.5831C7.75486 19.25 6.34062 19.2497 5.46198 18.3711C4.58346 17.4924 4.58307 16.0783 4.58307 13.25V10.083C4.58289 9.07064 3.76247 8.25 2.75006 8.25V5.5H19.2501V8.25ZM8.70807 9.08301C8.15604 9.08318 7.70824 9.53098 7.70807 10.083V14.666C7.70807 15.2182 8.15593 15.6658 8.70807 15.666C9.26035 15.666 9.70807 15.2183 9.70807 14.666V10.083C9.70789 9.53087 9.26024 9.08301 8.70807 9.08301ZM13.2911 9.08301C12.7392 9.08336 12.2913 9.53109 12.2911 10.083V14.666C12.2911 15.2181 12.7391 15.6657 13.2911 15.666C13.8434 15.666 14.2911 15.2183 14.2911 14.666V10.083C14.2909 9.53087 13.8433 9.08301 13.2911 9.08301Z" fill="#C10A0A"/>
-                            <path d="M9.22912 3.08971C9.33357 2.99225 9.56374 2.90613 9.88392 2.84471C10.2041 2.78329 10.5964 2.75 11 2.75C11.4036 2.75 11.7959 2.78329 12.116 2.84471C12.4362 2.90613 12.6664 2.99225 12.7708 3.08971" stroke="#C10A0A" stroke-width="2" stroke-linecap="round"/>
-                          </svg>
+                          Lihat
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="py-6 text-center text-gray-400">
-                      Tidak ada data yang ditemukan.
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="border border-gray-300 bg-white text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-semibold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(item.id, item.documentId)}
+                          className="border border-red-200 bg-white text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer flex items-center gap-1.5 font-semibold"
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div className="sm:hidden space-y-4 mt-4">
-  {filteredData.length > 0 ? (
-    filteredData.map((item, index) => (
-      <div
-        key={item.id}
-        className="bg-white rounded-2xl border border-gray-200 shadow p-4"
-      >
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold text-lg text-gray-800">
-              {item.nama}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {item.kelas}
-            </p>
-          </div>
-
-          <button
-            onClick={() => confirmDelete(item.id)}
-            className="text-red-500 text-xl"
-          >
-            🗑️
-          </button>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                    Belum ada data siswa sakit yang tercatat.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <div className="mt-4 space-y-3">
+        {/* TAMPILAN MOBILE & TABLET (Layar Kecil / Kartu) */}
+        <div className="lg:hidden space-y-3">
+          {loading ? (
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Memuat data dari Strapi...
+            </div>
+          ) : currentData.length > 0 ? (
+            currentData.map((item, index) => (
+              <div
+                key={item.id}
+                className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-3 text-xs"
+              >
+                <div className="flex justify-between items-start gap-2 border-b pb-2">
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase">
+                      #{indexOfFirstItem + index + 1}
+                    </span>
+                    <h3 className="font-bold text-sm text-gray-900">{item.nama}</h3>
+                    <p className="text-gray-500 text-[11px]">{item.kelas}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap ${getStatusStyle(
+                      item.status
+                    )}`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${getStatusDot(
+                        item.status
+                      )}`}
+                    />
+                    {item.status.trim()}
+                  </span>
+                </div>
 
-          <div>
-            <p className="text-xs text-gray-400">Keluhan</p>
-            <p className="font-medium">{item.keluhan}</p>
-          </div>
+                <div className="grid grid-cols-2 gap-2 text-gray-700">
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Tanggal:</span>
+                    <p className="font-medium">{item.tanggal}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Keluhan:</span>
+                    <p className="font-medium line-clamp-1">{item.keluhan}</p>
+                  </div>
+                </div>
 
-          <div>
-            <p className="text-xs text-gray-400">Tanggal</p>
-            <p>{item.tanggal}</p>
-          </div>
-
-          <div>
-            <p className="text-xs text-gray-400">Penanganan</p>
-            <p>{item.penanganan}</p>
-          </div>
-
+                <div className="pt-2 border-t flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => openDetailModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Lihat
+                  </button>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openDeleteModal(item.id, item.documentId)}
+                    className="border border-red-200 bg-white text-red-500 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Belum ada data siswa sakit yang tercatat.
+            </div>
+          )}
         </div>
-      </div>
-    ))
-  ) : (
-    <div className="text-center text-gray-500 py-8">
-      Tidak ada data.
-    </div>
-  )}
-</div>
-      {/* Pop-up Modal Konfirmasi Hapus */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl px-6 sm:px-10 py-10 sm:py-12 w-full max-w-lg text-center border border-gray-100">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-8 sm:mb-10 tracking-tight">
-              Apakah kamu yakin ingin menghapusnya?
-            </h2>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+
+        {/* PAGINATION */}
+        {!loading && totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 px-1">
+            <span className="text-xs text-gray-600 text-center sm:text-left">
+              Menampilkan {indexOfFirstItem + 1} -{" "}
+              {Math.min(indexOfLastItem, filteredData.length)} dari{" "}
+              {filteredData.length} data
+            </span>
+            <div className="flex gap-2">
               <button
-                onClick={handleDeleteYes}
-                className="bg-[#FF3B30] hover:bg-red-600 text-white font-bold px-10 sm:px-14 py-3 rounded-xl shadow transition"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
+              >
+                Sebelumnya
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
+              >
+                Selanjutnya
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* MODAL DETAIL */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">
+                Detail Siswa Sakit
+              </h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-500 text-xl font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3 text-xs sm:text-sm text-black">
+              <p><b>Nama:</b> {selectedItem.nama}</p>
+              <p><b>Kelas:</b> {selectedItem.kelas}</p>
+              <p><b>Keluhan:</b> {selectedItem.keluhan}</p>
+              <p><b>Tanggal & Waktu:</b> {selectedItem.tanggal}</p>
+              <p><b>Penanganan:</b> {selectedItem.penanganan}</p>
+              <div>
+                <b>Status:</b>
+                <div className="mt-1.5">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${getStatusStyle(
+                      selectedItem.status
+                    )}`}
+                  >
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${getStatusDot(
+                        selectedItem.status
+                      )}`}
+                    />
+                    {selectedItem.status.trim()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tombol Cetak Surat khusus Dipulangkan & Rujukan RS */}
+            {["Dipulangkan", "Rujukan RS"].includes(selectedItem.status.trim()) && (
+              <div className="mt-5 pt-4 border-t">
+                <button
+                  onClick={() => generateSuratPDF(selectedItem)}
+                  className="w-full bg-[#0D2840] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
+                  </svg>
+                  Cetak Surat {selectedItem.status.trim() === "Dipulangkan" ? "Izin Pulang" : "Rujukan"}
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="w-full mt-3 border border-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDIT */}
+      {showEditModal && selectedEditItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">Edit Status Siswa</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-500 text-xl p-1 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-xs sm:text-sm text-black">
+                <p><b>Nama:</b> {selectedEditItem.nama}</p>
+                <p className="mt-1"><b>Kelas:</b> {selectedEditItem.kelas}</p>
+              </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-black mb-2">
+                  Ubah Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  {STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status.trim()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6 border-t pt-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={savingStatus}
+                className="border border-gray-400 px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={updateStatus}
+                disabled={savingStatus}
+                className="bg-[#3B91FF] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
+              >
+                {savingStatus ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EXPORT */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-[#0B3A60] px-5 py-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2 font-bold text-base sm:text-lg">
+                <span>
+                  gridas<span className="text-red-500">Care</span>
+                </span>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-xs sm:text-sm font-semibold cursor-pointer p-1"
+              >
+                Tutup
+              </button>
+            </div>
+            <div className="p-5 sm:p-6">
+              <h3 className="font-bold text-black text-base sm:text-lg mb-4">
+                Pilih Format Export Laporan
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
+                <div
+                  onClick={() => setExportFormat("pdf")}
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
+                      ? "border-red-500 bg-red-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                    }`}
+                >
+                  <svg className="w-10 h-12 mb-2" viewBox="0 0 384 512" fill="none">
+                    <path d="M224 136V0H24C10.7 0 0 10.7 0 24V488C0 501.3 10.7 512 24 512H360C373.3 512 384 501.3 384 488V160H248C234.7 160 224 149.3 224 136Z" fill="#1A5CFF" />
+                    <path d="M377 105L279 7C273 1 265 0 256 0V128H384C384 119 383 111 377 105Z" fill="#93C5FD" />
+                    <text x="192" y="360" fill="white" fontSize="110" fontWeight="bold" textAnchor="middle">PDF</text>
+                  </svg>
+
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
+                    Cetak Laporan Rapi
+                  </span>
+                  <span className="text-xs text-red-500 font-semibold">(PDF)</span>
+                </div>
+
+                <div
+                  onClick={() => setExportFormat("excel")}
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
+                      ? "border-green-600 bg-green-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                    }`}
+                >
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z" fill="#079455" />
+                    <path d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z" fill="white" fillOpacity="0.3" />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M17.5381 18.2857C16.1393 18.2857 15.5227 18.4089 14.8968 18.7436C14.3395 19.0417 13.8988 19.4824 13.6008 20.0397C13.266 20.6656 13.1428 21.2822 13.1428 22.6809V25.319C13.1428 26.7178 13.266 27.3344 13.6008 27.9603C13.8988 28.5176 14.3395 28.9583 14.8968 29.2563C15.5227 29.5911 16.1393 29.7143 17.5381 29.7143H22.4619C23.8606 29.7143 24.4772 29.5911 25.1031 29.2563C25.6604 28.9583 26.1011 28.5176 26.3992 27.9603C26.7339 27.3344 26.8571 26.7178 26.8571 25.319V22.6809C26.8571 21.2822 26.7339 20.6656 26.3992 20.0397C26.1011 19.4824 25.6604 19.0417 25.1031 18.7436C24.4772 18.4089 23.8606 18.2857 22.4619 18.2857H17.5381ZM15.4358 19.7514C15.8133 19.5495 16.2038 19.4286 17.5381 19.4286H19.4285V21.7143H14.3169C14.365 21.1149 14.4669 20.8436 14.6086 20.5787C14.8001 20.2206 15.0777 19.9429 15.4358 19.7514ZM19.4285 22.8571H14.2857V25.1428H19.4285V22.8571ZM20.5714 25.1428V22.8571H25.7143V25.1428H20.5714ZM19.4285 26.2857H14.3169C14.365 26.8851 14.4669 27.1564 14.6086 27.4213C14.8001 27.7794 15.0777 28.057 15.4358 28.2485C15.8133 28.4505 16.2038 28.5714 17.5381 28.5714H19.4285V26.2857ZM20.5714 28.5714V26.2857H25.683C25.6349 26.8851 25.5331 27.1564 25.3914 27.4213C25.1999 27.7794 24.9223 28.057 24.5642 28.2485C24.1866 28.4505 23.7961 28.5714 22.4619 28.5714H20.5714ZM20.5714 21.7143V19.4286H22.4619C23.7961 19.4286 24.1866 19.5495 24.5642 19.7514C24.9223 19.9429 25.1999 20.2206 25.3914 20.5787C25.5331 20.8436 25.6349 21.1149 25.683 21.7143H20.5714Z" fill="white" />
+                  </svg>
+
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
+                    Data Mentah
+                  </span>
+                  <span className="text-xs text-green-600 font-semibold">
+                    (Excel .xlsx)
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Tanggal Mulai
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Tanggal Selesai
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-black"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-4">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="border border-gray-800 text-gray-800 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-gray-100 transition text-center"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleExportSubmit}
+                  className="bg-[#0B2545] text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-slate-800 transition text-center"
+                >
+                  Export Sekarang
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL HAPUS */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white w-full max-w-sm sm:max-w-md rounded-2xl p-6 sm:p-8 border border-gray-300 shadow-2xl text-center">
+            <h3 className="text-base sm:text-lg font-bold text-black mb-6">
+              Apakah kamu yakin ingin menghapus data ini?
+            </h3>
+            <div className="flex justify-center items-center gap-4">
+              <button
+                onClick={confirmDelete}
+                className="bg-red-500 text-white font-bold px-6 sm:px-8 py-2 rounded-lg hover:bg-red-600 text-xs sm:text-sm cursor-pointer"
               >
                 Ya
               </button>
               <button
-                onClick={handleDeleteNo}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 font-bold px-10 sm:px-14 py-3 rounded-xl shadow-xs transition"
+                onClick={() => setShowDeleteModal(false)}
+                className="bg-white text-black font-bold px-6 sm:px-8 py-2 rounded-lg border border-gray-800 hover:bg-gray-100 text-xs sm:text-sm cursor-pointer"
               >
                 Tidak
               </button>
