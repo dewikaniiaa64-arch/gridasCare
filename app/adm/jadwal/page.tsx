@@ -1,7 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import { IoArrowBack } from "react-icons/io5";
+
+// PASTIKAN URL INI SESUAI DENGAN PORT 1337 DI VS CODE PORTS TAB
+const API_URL = "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss";
 
 export default function AdminJadwalPage() {
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
@@ -14,12 +17,12 @@ export default function AdminJadwalPage() {
     Jam: "",
   });
 
-  const hariList = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+  const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at"];
   const jamList = [
     "07:00 - 09:00",
     "09:00 - 11:00",
     "11:00 - 13:00",
-    "13:00 - 15:00",
+    "13:00 - 15:00"
   ];
 
   useEffect(() => {
@@ -28,128 +31,105 @@ export default function AdminJadwalPage() {
 
   const fetchJadwal = async () => {
     try {
-      const res = await fetch(
-        "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss?populate=*",
-      );
+      const res = await fetch(`${API_URL}?populate=*`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tunnel-Skip-Browser-Warning": "true", // Header wajib untuk Devtunnels
+        },
+      });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        throw new Error(`Gagal memuat data (Status: ${res.status})`);
+      }
 
       const result = await res.json();
-
       setDataJadwal(result.data || []);
     } catch (error) {
-      console.log("Backend belum tersambung");
+      console.error('Error saat fetch Strapi:', error);
+      alert("Koneksi ke Strapi terputus. Pastikan URL Devtunnel dapat dibuka di tab browser baru.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Hapus data?")) return;
-
-    try {
-      await fetch(
-        `https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss/${id}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      fetchJadwal();
-    } catch (error) {
-      alert("Gagal menghapus");
-    }
-  };
-
   const handleSave = async () => {
+    if (!formData.Hari || !formData.Jam) {
+      alert("Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!");
+      return;
+    }
+
+    const currentPayload = { ...formData };
+    const [jamMulai, jamSelesai] = currentPayload.Jam.split(" - ");
+    const jamMulaiFormat = `${jamMulai}:00.000`;
+    const jamSelesaiFormat = `${jamSelesai}:00.000`;
+
+    const selectedHariClean = currentPayload.Hari.trim().toLowerCase().replace("'", "").replace("’", "");
+    const selectedJamMulaiClean = jamMulai.trim();
+
+    // Cari data lama jika ada
+    const targetItem = dataJadwal.find((item: any) => {
+      const attr = item.attributes || item;
+      const dbHariClean = attr.Hari ? String(attr.Hari).trim().toLowerCase().replace("'", "").replace("’", "") : "";
+
+      let dbJamMulaiClean = "";
+      if (attr.Jam_Mulai) {
+        dbJamMulaiClean = String(attr.Jam_Mulai).slice(0, 5).trim();
+      } else if (attr.jam) {
+        dbJamMulaiClean = String(attr.jam).split("-")[0].trim();
+      }
+
+      return dbHariClean === selectedHariClean && dbJamMulaiClean === selectedJamMulaiClean;
+    });
+
+    const previousJadwal = [...dataJadwal];
+
+    const bodyPayload = {
+      data: {
+        Nama: currentPayload.Nama,
+        Jabatan: currentPayload.Jabatan,
+        Hari: currentPayload.Hari,
+        Jam_Mulai: jamMulaiFormat,
+        Jam_Selesai: jamSelesaiFormat,
+      }
+    };
+
+    setOpenModal(false);
+    setFormData({ Nama: "", Jabatan: "", Hari: "", Jam: "" });
+
     try {
-      if (!formData.Hari || !formData.Jam) {
-        alert(
-          "Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!",
-        );
-        return;
-      }
-
-      const [jamMulai, jamSelesai] = formData.Jam.split(" - ");
-      const jamMulaiFormat = `${jamMulai}:00.000`;
-      const jamSelesaiFormat = `${jamSelesai}:00.000`;
-
-      // 1. Cari apakah sudah ada data dengan Hari dan Jam yang sama di database
-      const targetItem = dataJadwal.find((item: any) => {
-        const attr = item.attributes || item;
-        const dbJamMulai = attr.Jam_Mulai ? attr.Jam_Mulai.slice(0, 5) : "";
-        const dbJamSelesai = attr.Jam_Selesai
-          ? attr.Jam_Selesai.slice(0, 5)
-          : "";
-
-        return (
-          attr.Hari === formData.Hari &&
-          dbJamMulai === jamMulai &&
-          dbJamSelesai === jamSelesai
-        );
-      });
-
       let res;
-      if (targetItem) {
-        // 2. Jika ketemu, lakukan UPDATE (PUT)
-        const documentIdOrId = targetItem.documentId || targetItem.id;
-        res = await fetch(
-          `https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss/${documentIdOrId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              data: {
-                Nama: formData.Nama,
-                Jabatan: formData.Jabatan,
-              },
-            }),
-          },
-        );
-      } else {
-        // 3. Jika belum ada, buat baru (POST)
-        res = await fetch(
-          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              data: {
-                Nama: formData.Nama,
-                Jabatan: formData.Jabatan,
-                Hari: formData.Hari,
-                Jam_Mulai: jamMulaiFormat,
-                Jam_Selesai: jamSelesaiFormat,
-              },
-            }),
-          },
-        );
-      }
 
-      const result = await res.json();
+      if (targetItem) {
+        const documentIdOrId = targetItem.documentId || targetItem.id;
+        res = await fetch(`${API_URL}/${documentIdOrId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Tunnel-Skip-Browser-Warning": "true",
+          },
+          body: JSON.stringify(bodyPayload),
+        });
+      } else {
+        res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Tunnel-Skip-Browser-Warning": "true",
+          },
+          body: JSON.stringify(bodyPayload),
+        });
+      }
 
       if (!res.ok) {
-        alert(JSON.stringify(result, null, 2));
-        return;
+        throw new Error("Gagal menyimpan data ke server");
       }
 
-      alert("Jadwal petugas berhasil diperbarui!");
-      setOpenModal(false);
-      setFormData({
-        Nama: "",
-        Jabatan: "",
-        Hari: "",
-        Jam: "",
-      });
+      await fetchJadwal();
 
-      fetchJadwal();
     } catch (error) {
-      console.log(error);
-      alert("Gagal menyimpan data");
+      console.error(error);
+      alert("Gagal menyimpan data ke server. Perubahan dikembalikan.");
+      setDataJadwal(previousJadwal);
     }
   };
 
@@ -157,7 +137,9 @@ export default function AdminJadwalPage() {
     <div className="w-full">
       {/* Judul */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold text-[#3B91FF]">Jadwal Petugas</h1>
+        <h1 className="text-4xl font-bold text-[#3B91FF]">
+          Jadwal Petugas
+        </h1>
 
         <button
           onClick={() => setOpenModal(true)}
@@ -170,7 +152,13 @@ export default function AdminJadwalPage() {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <circle cx="15" cy="15" r="11.25" stroke="white" strokeWidth="2" />
+            <circle
+              cx="15"
+              cy="15"
+              r="11.25"
+              stroke="white"
+              strokeWidth="2"
+            />
             <path
               d="M15 18.75L15 11.25"
               stroke="white"
@@ -188,12 +176,14 @@ export default function AdminJadwalPage() {
         </button>
       </div>
 
-      {/* Container */}
+      {/* Container Grid Hari */}
       <div className="bg-[#EAEFF5] rounded-3xl p-5 shadow">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+
           {hariList.map((hari) => {
             return (
               <div key={hari} className="rounded-2xl overflow-hidden shadow">
+
                 {/* Header Hari */}
                 <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
                   <img
@@ -204,7 +194,7 @@ export default function AdminJadwalPage() {
                   <span>{hari}</span>
                 </div>
 
-                {/* Isi Berdasarkan 4 Slot Jam Tetap */}
+                {/* Sesi Jam */}
                 <div className="bg-blue-300">
                   {loading ? (
                     <div className="p-5 text-center">Memuat...</div>
@@ -212,24 +202,24 @@ export default function AdminJadwalPage() {
                     jamList.map((jamSlot) => {
                       const [slotMulai] = jamSlot.split(" - ");
 
-                      // Cari data di database yang sesuai Hari dan Jam Mulai-nya
+                      const currentHariClean = hari.trim().toLowerCase().replace("'", "").replace("’", "");
+                      const currentJamMulaiClean = slotMulai.trim();
+
                       const matchedItem = dataJadwal.find((item: any) => {
                         const attr = item.attributes || item;
-                        const itemHari = attr.Hari;
-                        const dbJamMulai = attr.Jam_Mulai
-                          ? attr.Jam_Mulai.slice(0, 5)
-                          : "";
+                        const dbHariClean = attr.Hari ? String(attr.Hari).trim().toLowerCase().replace("'", "").replace("’", "") : "";
 
-                        return (
-                          (itemHari === hari ||
-                            itemHari === hari.replace("'", "")) &&
-                          dbJamMulai === slotMulai
-                        );
+                        let dbJamMulaiClean = "";
+                        if (attr.Jam_Mulai) {
+                          dbJamMulaiClean = String(attr.Jam_Mulai).slice(0, 5).trim();
+                        } else if (attr.jam) {
+                          dbJamMulaiClean = String(attr.jam).split("-")[0].trim();
+                        }
+
+                        return dbHariClean === currentHariClean && dbJamMulaiClean === currentJamMulaiClean;
                       });
 
-                      const attr = matchedItem
-                        ? matchedItem.attributes || matchedItem
-                        : null;
+                      const attr = matchedItem ? (matchedItem.attributes || matchedItem) : null;
 
                       return (
                         <div key={jamSlot} className="p-4 border-b bg-blue-300">
@@ -268,20 +258,14 @@ export default function AdminJadwalPage() {
                             />
 
                             <div className="flex-1">
-                              {attr ? (
+                              {attr && (attr.Nama || attr.nama) ? (
                                 <>
-                                  <p className="font-bold text-sm">
-                                    {attr.Nama}
-                                  </p>
-                                  <p className="text-sm text-gray-700">
-                                    {attr.Jabatan}
-                                  </p>
+                                  <p className="font-bold text-sm">{attr.Nama || attr.nama}</p>
+                                  <p className="text-sm text-gray-700">{attr.Jabatan || attr.jabatan || "-"}</p>
                                 </>
                               ) : (
                                 <>
-                                  <p className="font-bold text-sm">
-                                    Belum ada data
-                                  </p>
+                                  <p className="font-bold text-sm">Belum ada data</p>
                                   <p className="text-sm text-gray-700">-</p>
                                 </>
                               )}
@@ -292,9 +276,11 @@ export default function AdminJadwalPage() {
                     })
                   )}
                 </div>
+
               </div>
             );
           })}
+
         </div>
       </div>
 
@@ -302,6 +288,7 @@ export default function AdminJadwalPage() {
       {openModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="relative bg-white w-[500px] rounded-[28px] p-8 shadow-2xl">
+
             <button
               onClick={() => setOpenModal(false)}
               className="absolute top-8 left-12 text-[#2563EB]"
@@ -372,9 +359,7 @@ export default function AdminJadwalPage() {
                 >
                   <option value="">Pilih Jam</option>
                   {jamList.map((j) => (
-                    <option key={j} value={j}>
-                      {j}
-                    </option>
+                    <option key={j} value={j}>{j}</option>
                   ))}
                 </select>
               </div>
@@ -388,6 +373,7 @@ export default function AdminJadwalPage() {
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}
