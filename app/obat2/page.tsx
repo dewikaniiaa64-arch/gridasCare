@@ -42,8 +42,11 @@ export default function ObatObatanPage() {
   useEffect(() => {
     const fetchObatFromStrapi = async () => {
       try {
+        const strapiBaseUrl =
+          process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+
         const response = await fetch(
-          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/obat-obatans?populate=*",
+          `${strapiBaseUrl}/api/obat-obatans?populate=*`
         );
 
         if (!response.ok) {
@@ -65,7 +68,7 @@ export default function ObatObatanPage() {
 
   // Helper untuk mengekstrak teks dari Rich Text Strapi v5
   const formatAturanPakai = (
-    aturan: AturanPakaiBlock[] | string | undefined,
+    aturan: AturanPakaiBlock[] | string | undefined
   ): string => {
     if (!aturan) return "Tidak ada aturan khusus";
     if (typeof aturan === "string") return aturan;
@@ -73,7 +76,7 @@ export default function ObatObatanPage() {
     if (Array.isArray(aturan)) {
       return aturan
         .map(
-          (block) => block.children?.map((child) => child.text).join("") || "",
+          (block) => block.children?.map((child) => child.text).join("") || ""
         )
         .filter(Boolean)
         .join(" ");
@@ -90,30 +93,28 @@ export default function ObatObatanPage() {
       }}
     >
       {/* Hero Section */}
-<div className="max-w-7xl mx-auto flex flex-col items-center text-center mb-8">
+      <div className="max-w-7xl mx-auto flex flex-col items-center text-center mb-8">
+        {/* Foto Obat */}
+        <div className="w-56 h-40 md:w-72 md:h-48 relative mb-3">
+          <Image
+            src="/images/obet.png"
+            alt="Ilustrasi Obat"
+            fill
+            className="object-contain"
+          />
+        </div>
 
-  {/* Foto Obat */}
-  <div className="w-56 h-40 md:w-72 md:h-48 relative mb-3">
-    <Image
-      src="/images/obet.png"
-      alt="Ilustrasi Obat"
-      fill
-      className="object-contain"
-    />
-  </div>
+        {/* Judul */}
+        <h1 className="text-3xl md:text-4xl font-bold text-[#0A405A] mb-3">
+          Obat - Obatan
+        </h1>
 
-  {/* Judul */}
-  <h1 className="text-3xl md:text-4xl font-bold text-[#0A405A] mb-3">
-    Obat - Obatan
-  </h1>
-
-  {/* Deskripsi */}
-  <p className="text-gray-700 text-sm md:text-base leading-relaxed max-w-xl">
-    Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
-    ringan.
-  </p>
-
-</div>
+        {/* Deskripsi */}
+        <p className="text-gray-700 text-sm md:text-base leading-relaxed max-w-xl">
+          Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
+          ringan.
+        </p>
+      </div>
 
       {loading && (
         <div className="text-center py-12 text-[#0A405A] font-semibold text-lg">
@@ -131,31 +132,22 @@ export default function ObatObatanPage() {
       {!loading && !error && (
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12">
           {daftarObat.map((item) => {
-            // MENDUKUNG STRAPI v5 & v4
             const obat = item?.attributes || item;
 
-            // 1. Ambil Nama
             const nama = obat.Nama_Obat || obat.nama || "Obat";
-
-            // 2. Ambil Kategori / Tipe
             const tipe = obat.Kategori_obat || obat.tipe || "Umum";
-
-            // 3. Ambil Deskripsi / Kegunaan
             const desc = obat.Kegunaan || obat.desc || "Tidak ada deskripsi.";
-
-            // 4. Ambil Aturan Pakai
             const aturanPakai = formatAturanPakai(
-              obat.Aturan_pakai || obat.aturan,
+              obat.Aturan_pakai || obat.aturan
             );
 
-            // 5. Penanganan URL Gambar yang Presisi
             const pathGambar =
               obat?.Gambar?.url ||
               obat?.gambar?.data?.attributes?.url ||
               obat?.gambar?.url;
             const strapiUrl =
               process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-            let gambarUrl = "/images/paracetamol.png"; // Fallback default
+            let gambarUrl = "/images/paracetamol.png";
 
             if (pathGambar) {
               gambarUrl = pathGambar.startsWith("http")
