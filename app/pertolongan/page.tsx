@@ -114,7 +114,7 @@ export default function PertolonganPage() {
                   data?.Gambar?.url ||
                   data?.gambar?.data?.attributes?.url ||
                   data?.gambar?.url;
-                  
+
                 const strapiUrl =
                   process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
                 let image = "/images/luka.png"; // Fallback
@@ -150,34 +150,34 @@ export default function PertolonganPage() {
 
       {/* Pop-up / Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#3A5A78] rounded-3xl w-[420px] p-8 relative shadow-2xl animate-[fadeIn_.3s_ease]">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#3A5A78] rounded-3xl w-full max-w-md p-6 sm:p-8 relative shadow-2xl animate-[fadeIn_.3s_ease] max-h-[90vh] overflow-y-auto">
             {/* Tombol Tutup */}
             <button
               onClick={() => setSelected(null)}
-              className="absolute top-5 left-5 text-white text-3xl hover:scale-110 transition"
+              className="absolute top-5 left-5 text-white text-3xl hover:scale-110 transition cursor-pointer"
             >
               ←
             </button>
 
             {/* Gambar */}
-            <div className="flex justify-center">
-              <div className="w-28 h-28 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="flex justify-center mt-2">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center overflow-hidden bg-white/10">
                 <img
                   src={selected.image}
                   alt={selected.title}
-                  className="w-full h-full object-cover "
+                  className="w-full h-full object-cover"
                 />
               </div>
             </div>
 
             {/* Judul */}
-            <h2 className="text-center text-white text-3xl font-bold mt-6">
+            <h2 className="text-center text-white text-2xl sm:text-3xl font-bold mt-4">
               {selected.title}
             </h2>
 
             {/* Langkah */}
-            <ol className="text-white mt-8 space-y-3 list-decimal pl-6 leading-7">
+            <ol className="text-white mt-6 space-y-3 list-decimal pl-5 sm:pl-6 leading-6 sm:leading-7 text-sm sm:text-base">
               {selected.steps.map((step, index) => (
                 <li key={index}>{step}</li>
               ))}
