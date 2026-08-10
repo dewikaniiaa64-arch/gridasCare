@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -20,10 +19,9 @@ interface SiswaSakitItem {
   status: string;
 }
 
-// Opsi status disesuaikan persis dengan Enum Strapi
 const STATUS_OPTIONS = [
   "Istirahat di UKS",
-  "Kembali ke Kelas", // Mempertahankan spasi jika di Strapi belum diedit
+  "Kembali ke Kelas",
   "Dipulangkan",
   "Rujukan RS",
 ];
@@ -64,7 +62,6 @@ export default function AdminSiswaSakitPage() {
   const fetchDataSiswa = async () => {
     try {
       setLoading(true);
-
       const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*`);
 
       if (!res.ok) {
@@ -150,7 +147,6 @@ export default function AdminSiswaSakitPage() {
     setShowEditModal(true);
   };
 
-  // PERBAIKAN FUNGSI UPDATE STATUS
   const updateStatus = async () => {
     if (!selectedEditItem) return;
 
@@ -163,7 +159,7 @@ export default function AdminSiswaSakitPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: {
-            Status_Siswa: selectedStatus // Diselaraskan dengan nama field di Strapi Schema
+            Status_Siswa: selectedStatus
           },
         }),
       });
@@ -289,12 +285,11 @@ export default function AdminSiswaSakitPage() {
 
     setShowExportModal(false);
   };
-  // FUNGSI GENERATE SURAT DIPULANGKAN / RUJUKAN
+
   const generateSuratPDF = (item: SiswaSakitItem) => {
     const doc = new jsPDF();
     const isDipulangkan = item.status.trim() === "Dipulangkan";
 
-    // Header Surat
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("SMK NEGERI 2 SUMEDANG", 105, 18, { align: "center" });
@@ -304,11 +299,9 @@ export default function AdminSiswaSakitPage() {
     doc.setFont("helvetica", "normal");
     doc.text("Jl. Arief Rakhman Hakim NO. 59 Sumedang ", 105, 30, { align: "center" });
 
-    // Garis Pembatas Kop Surat
     doc.setLineWidth(0.8);
     doc.line(20, 34, 190, 34);
 
-    // Judul Surat
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     const judulSurat = isDipulangkan
@@ -316,7 +309,6 @@ export default function AdminSiswaSakitPage() {
       : "SURAT RUJUKAN KESEHATAN";
     doc.text(judulSurat, 105, 45, { align: "center" });
 
-    // Isi Surat
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("Yang bertanda tangan di bawah ini Petugas UKS menerangkan bahwa:", 20, 58);
@@ -328,18 +320,16 @@ export default function AdminSiswaSakitPage() {
     doc.text(`Penanganan      : ${item.penanganan}`, 25, 96);
 
     const deskripsi = isDipulangkan
-      ? "Siswa tersebut di atas dinyatakan perlu **DIPULANGKAN** untuk beristirahat di rumah/penanganan lebih lanjut oleh orang tua."
+      ? "Siswa tersebut di atas dinyatakan perlu DIPULANGKAN untuk beristirahat di rumah/penanganan lebih lanjut oleh orang tua."
       : "Siswa tersebut di atas perlu DIRUJUK ke Fasilitas Kesehatan / Rumah Sakit untuk penanganan medis lebih lanjut.";
 
     doc.text(deskripsi, 20, 110, { maxWidth: 170 });
     doc.text("Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.", 20, 125);
 
-    // Tanda Tangan
     doc.text("Sumedang, " + item.tanggal.split(" ")[0], 140, 145);
     doc.text("Petugas UKS,", 140, 152);
     doc.text("( ..................................... )", 140, 180);
 
-    // Simpan PDF
     const namaFile = isDipulangkan
       ? `Surat_Izin_Pulang_${item.nama.replace(/\s+/g, "_")}.pdf`
       : `Surat_Rujukan_${item.nama.replace(/\s+/g, "_")}.pdf`;
@@ -347,7 +337,7 @@ export default function AdminSiswaSakitPage() {
     doc.save(namaFile);
   };
 
-  // FILTER & PAGINATION LOGIC
+  // FILTER & PAGINATION
   const filteredData = dataSiswa.filter(
     (item) =>
       item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -362,14 +352,14 @@ export default function AdminSiswaSakitPage() {
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
-    <div className="p-10 w-full bg-white min-h-screen relative">
-      <h1 className="text-3xl font-bold text-[#3B91FF] mb-6">
+    <div className="p-4 sm:p-6 md:p-10 w-full bg-white min-h-screen relative">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#3B91FF] mb-4 sm:mb-6">
         Riwayat Siswa Sakit
       </h1>
 
-      <div className="bg-[#EAEFF5] rounded-3xl p-6 shadow-sm border border-gray-200">
+      <div className="bg-[#EAEFF5] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200">
         {/* SEARCH + EXPORT */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
           <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
               <svg
@@ -398,11 +388,11 @@ export default function AdminSiswaSakitPage() {
 
           <button
             onClick={() => setShowExportModal(true)}
-            className="bg-[#0D2840] text-white px-5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
+            className="bg-[#0D2840] text-white px-5 py-2.5 sm:py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 40 35"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -420,7 +410,7 @@ export default function AdminSiswaSakitPage() {
           </button>
         </div>
 
-        {/* TABEL DESKTOP */}
+        {/* TABEL DESKTOP (Layar Besar) */}
         <div className="hidden lg:block bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -504,10 +494,84 @@ export default function AdminSiswaSakitPage() {
           </table>
         </div>
 
+        {/* TAMPILAN MOBILE & TABLET (Layar Kecil / Kartu) */}
+        <div className="lg:hidden space-y-3">
+          {loading ? (
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Memuat data dari Strapi...
+            </div>
+          ) : currentData.length > 0 ? (
+            currentData.map((item, index) => (
+              <div
+                key={item.id}
+                className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-3 text-xs"
+              >
+                <div className="flex justify-between items-start gap-2 border-b pb-2">
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase">
+                      #{indexOfFirstItem + index + 1}
+                    </span>
+                    <h3 className="font-bold text-sm text-gray-900">{item.nama}</h3>
+                    <p className="text-gray-500 text-[11px]">{item.kelas}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap ${getStatusStyle(
+                      item.status
+                    )}`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${getStatusDot(
+                        item.status
+                      )}`}
+                    />
+                    {item.status.trim()}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-gray-700">
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Tanggal:</span>
+                    <p className="font-medium">{item.tanggal}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Keluhan:</span>
+                    <p className="font-medium line-clamp-1">{item.keluhan}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => openDetailModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Lihat
+                  </button>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openDeleteModal(item.id, item.documentId)}
+                    className="border border-red-200 bg-white text-red-500 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Belum ada data siswa sakit yang tercatat.
+            </div>
+          )}
+        </div>
+
         {/* PAGINATION */}
         {!loading && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 px-2">
-            <span className="text-xs text-gray-600">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 px-1">
+            <span className="text-xs text-gray-600 text-center sm:text-left">
               Menampilkan {indexOfFirstItem + 1} -{" "}
               {Math.min(indexOfLastItem, filteredData.length)} dari{" "}
               {filteredData.length} data
@@ -516,7 +580,7 @@ export default function AdminSiswaSakitPage() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50"
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
               >
                 Sebelumnya
               </button>
@@ -525,7 +589,7 @@ export default function AdminSiswaSakitPage() {
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50"
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
               >
                 Selanjutnya
               </button>
@@ -537,17 +601,19 @@ export default function AdminSiswaSakitPage() {
       {/* MODAL DETAIL */}
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center border-b pb-3 mb-5">
-              <h2 className="text-xl font-bold text-black">Detail Siswa Sakit</h2>
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">
+                Detail Siswa Sakit
+              </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="text-gray-500 text-xl"
+                className="text-gray-500 text-xl font-bold p-1"
               >
                 ✕
               </button>
             </div>
-            <div className="space-y-4 text-sm text-black">
+            <div className="space-y-3 text-xs sm:text-sm text-black">
               <p><b>Nama:</b> {selectedItem.nama}</p>
               <p><b>Kelas:</b> {selectedItem.kelas}</p>
               <p><b>Keluhan:</b> {selectedItem.keluhan}</p>
@@ -555,54 +621,7 @@ export default function AdminSiswaSakitPage() {
               <p><b>Penanganan:</b> {selectedItem.penanganan}</p>
               <div>
                 <b>Status:</b>
-                <div className="mt-2">
-                  <span
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${getStatusStyle(
-                      selectedItem.status
-                    )}`}
-                  >
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${getStatusDot(
-                        selectedItem.status
-                      )}`}
-                    />
-                    {selectedItem.status.trim()}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowDetailModal(false)}
-              className="w-full mt-6 border border-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100"
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DETAIL */}
-      {showDetailModal && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center border-b pb-3 mb-5">
-              <h2 className="text-xl font-bold text-black">Detail Siswa Sakit</h2>
-              <button
-                onClick={() => setShowDetailModal(false)}
-                className="text-gray-500 text-xl"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-4 text-sm text-black">
-              <p><b>Nama:</b> {selectedItem.nama}</p>
-              <p><b>Kelas:</b> {selectedItem.kelas}</p>
-              <p><b>Keluhan:</b> {selectedItem.keluhan}</p>
-              <p><b>Tanggal & Waktu:</b> {selectedItem.tanggal}</p>
-              <p><b>Penanganan:</b> {selectedItem.penanganan}</p>
-              <div>
-                <b>Status:</b>
-                <div className="mt-2">
+                <div className="mt-1.5">
                   <span
                     className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${getStatusStyle(
                       selectedItem.status
@@ -624,7 +643,7 @@ export default function AdminSiswaSakitPage() {
               <div className="mt-5 pt-4 border-t">
                 <button
                   onClick={() => generateSuratPDF(selectedItem)}
-                  className="w-full bg-[#0D2840] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2"
+                  className="w-full bg-[#0D2840] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                     <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
@@ -636,7 +655,7 @@ export default function AdminSiswaSakitPage() {
 
             <button
               onClick={() => setShowDetailModal(false)}
-              className="w-full mt-3 border border-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100"
+              className="w-full mt-3 border border-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
             >
               Tutup
             </button>
@@ -647,29 +666,29 @@ export default function AdminSiswaSakitPage() {
       {/* MODAL EDIT */}
       {showEditModal && selectedEditItem && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex justify-between items-center border-b pb-3 mb-5">
-              <h2 className="text-xl font-bold text-black">Edit Status Siswa</h2>
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">Edit Status Siswa</h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-500 text-xl"
+                className="text-gray-500 text-xl p-1 font-bold"
               >
                 ✕
               </button>
             </div>
             <div className="space-y-4">
-              <div className="text-sm text-black">
+              <div className="text-xs sm:text-sm text-black">
                 <p><b>Nama:</b> {selectedEditItem.nama}</p>
-                <p className="mt-2"><b>Kelas:</b> {selectedEditItem.kelas}</p>
+                <p className="mt-1"><b>Kelas:</b> {selectedEditItem.kelas}</p>
               </div>
               <div>
-                <label className="block text-sm font-bold text-black mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-black mb-2">
                   Ubah Status
                 </label>
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
                   {STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
@@ -679,18 +698,18 @@ export default function AdminSiswaSakitPage() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-7 border-t pt-5">
+            <div className="flex justify-end gap-3 mt-6 border-t pt-4">
               <button
                 onClick={() => setShowEditModal(false)}
                 disabled={savingStatus}
-                className="border border-gray-400 px-5 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100"
+                className="border border-gray-400 px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 onClick={updateStatus}
                 disabled={savingStatus}
-                className="bg-[#3B91FF] text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-blue-600 disabled:opacity-50"
+                className="bg-[#3B91FF] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
               >
                 {savingStatus ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
@@ -702,31 +721,31 @@ export default function AdminSiswaSakitPage() {
       {/* MODAL EXPORT */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
-            <div className="bg-[#0B3A60] px-6 py-4 flex justify-between items-center text-white">
-              <div className="flex items-center gap-2 font-bold text-lg">
+          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-[#0B3A60] px-5 py-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2 font-bold text-base sm:text-lg">
                 <span>
                   gridas<span className="text-red-500">Care</span>
                 </span>
               </div>
               <button
                 onClick={() => setShowExportModal(false)}
-                className="text-sm font-semibold cursor-pointer"
+                className="text-xs sm:text-sm font-semibold cursor-pointer p-1"
               >
                 Tutup
               </button>
             </div>
-            <div className="p-6">
-              <h3 className="font-bold text-black text-lg mb-4">
+            <div className="p-5 sm:p-6">
+              <h3 className="font-bold text-black text-base sm:text-lg mb-4">
                 Pilih Format Export Laporan
               </h3>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <div
                   onClick={() => setExportFormat("pdf")}
-                  className={`border-2 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
-                    ? "border-red-500 bg-red-50/60 shadow-sm"
-                    : "border-gray-200 hover:border-gray-300"
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
+                      ? "border-red-500 bg-red-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
                     }`}
                 >
                   <svg className="w-10 h-12 mb-2" viewBox="0 0 384 512" fill="none">
@@ -735,7 +754,7 @@ export default function AdminSiswaSakitPage() {
                     <text x="192" y="360" fill="white" fontSize="110" fontWeight="bold" textAnchor="middle">PDF</text>
                   </svg>
 
-                  <span className="font-bold text-sm text-gray-800">
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
                     Cetak Laporan Rapi
                   </span>
                   <span className="text-xs text-red-500 font-semibold">(PDF)</span>
@@ -743,18 +762,18 @@ export default function AdminSiswaSakitPage() {
 
                 <div
                   onClick={() => setExportFormat("excel")}
-                  className={`border-2 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
-                    ? "border-green-600 bg-green-50/60 shadow-sm"
-                    : "border-gray-200 hover:border-gray-300"
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
+                      ? "border-green-600 bg-green-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
                     }`}
                 >
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2">
                     <path fillRule="evenodd" clipRule="evenodd" d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z" fill="#079455" />
                     <path d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z" fill="white" fillOpacity="0.3" />
                     <path fillRule="evenodd" clipRule="evenodd" d="M17.5381 18.2857C16.1393 18.2857 15.5227 18.4089 14.8968 18.7436C14.3395 19.0417 13.8988 19.4824 13.6008 20.0397C13.266 20.6656 13.1428 21.2822 13.1428 22.6809V25.319C13.1428 26.7178 13.266 27.3344 13.6008 27.9603C13.8988 28.5176 14.3395 28.9583 14.8968 29.2563C15.5227 29.5911 16.1393 29.7143 17.5381 29.7143H22.4619C23.8606 29.7143 24.4772 29.5911 25.1031 29.2563C25.6604 28.9583 26.1011 28.5176 26.3992 27.9603C26.7339 27.3344 26.8571 26.7178 26.8571 25.319V22.6809C26.8571 21.2822 26.7339 20.6656 26.3992 20.0397C26.1011 19.4824 25.6604 19.0417 25.1031 18.7436C24.4772 18.4089 23.8606 18.2857 22.4619 18.2857H17.5381ZM15.4358 19.7514C15.8133 19.5495 16.2038 19.4286 17.5381 19.4286H19.4285V21.7143H14.3169C14.365 21.1149 14.4669 20.8436 14.6086 20.5787C14.8001 20.2206 15.0777 19.9429 15.4358 19.7514ZM19.4285 22.8571H14.2857V25.1428H19.4285V22.8571ZM20.5714 25.1428V22.8571H25.7143V25.1428H20.5714ZM19.4285 26.2857H14.3169C14.365 26.8851 14.4669 27.1564 14.6086 27.4213C14.8001 27.7794 15.0777 28.057 15.4358 28.2485C15.8133 28.4505 16.2038 28.5714 17.5381 28.5714H19.4285V26.2857ZM20.5714 28.5714V26.2857H25.683C25.6349 26.8851 25.5331 27.1564 25.3914 27.4213C25.1999 27.7794 24.9223 28.057 24.5642 28.2485C24.1866 28.4505 23.7961 28.5714 22.4619 28.5714H20.5714ZM20.5714 21.7143V19.4286H22.4619C23.7961 19.4286 24.1866 19.5495 24.5642 19.7514C24.9223 19.9429 25.1999 20.2206 25.3914 20.5787C25.5331 20.8436 25.6349 21.1149 25.683 21.7143H20.5714Z" fill="white" />
                   </svg>
 
-                  <span className="font-bold text-sm text-gray-800">
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
                     Data Mentah
                   </span>
                   <span className="text-xs text-green-600 font-semibold">
@@ -763,7 +782,7 @@ export default function AdminSiswaSakitPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Tanggal Mulai
@@ -788,18 +807,18 @@ export default function AdminSiswaSakitPage() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center gap-4">
-                <button
-                  onClick={handleExportSubmit}
-                  className="bg-[#0B2545] text-white px-8 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-slate-800 transition"
-                >
-                  Export Sekarang
-                </button>
+              <div className="flex flex-col-reverse sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-4">
                 <button
                   onClick={() => setShowExportModal(false)}
-                  className="border border-gray-800 text-gray-800 px-8 py-2.5 rounded-xl font-bold text-sm cursor-pointer hover:bg-gray-100 transition"
+                  className="border border-gray-800 text-gray-800 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-gray-100 transition text-center"
                 >
                   Batal
+                </button>
+                <button
+                  onClick={handleExportSubmit}
+                  className="bg-[#0B2545] text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-slate-800 transition text-center"
+                >
+                  Export Sekarang
                 </button>
               </div>
             </div>
@@ -810,20 +829,20 @@ export default function AdminSiswaSakitPage() {
       {/* MODAL HAPUS */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-8 border border-gray-300 shadow-2xl text-center">
-            <h3 className="text-lg font-bold text-black mb-8">
+          <div className="bg-white w-full max-w-sm sm:max-w-md rounded-2xl p-6 sm:p-8 border border-gray-300 shadow-2xl text-center">
+            <h3 className="text-base sm:text-lg font-bold text-black mb-6">
               Apakah kamu yakin ingin menghapus data ini?
             </h3>
-            <div className="flex justify-center items-center gap-6">
+            <div className="flex justify-center items-center gap-4">
               <button
                 onClick={confirmDelete}
-                className="bg-red-500 text-white font-bold px-10 py-2.5 rounded-lg hover:bg-red-600"
+                className="bg-red-500 text-white font-bold px-6 sm:px-8 py-2 rounded-lg hover:bg-red-600 text-xs sm:text-sm cursor-pointer"
               >
                 Ya
               </button>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="bg-white text-black font-bold px-10 py-2.5 rounded-lg border border-gray-800 hover:bg-gray-100"
+                className="bg-white text-black font-bold px-6 sm:px-8 py-2 rounded-lg border border-gray-800 hover:bg-gray-100 text-xs sm:text-sm cursor-pointer"
               >
                 Tidak
               </button>
