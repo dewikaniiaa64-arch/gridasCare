@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { IoArrowBack } from "react-icons/io5";
+import { useRouter } from 'next/navigation';
 
 // PASTIKAN URL INI SESUAI DENGAN PORT 1337 DI VS CODE PORTS TAB
 const API_URL = "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss";
 
 export default function AdminJadwalPage() {
+  const router = useRouter();
   const [dataJadwal, setDataJadwal] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
@@ -25,9 +27,25 @@ export default function AdminJadwalPage() {
     "13:00 - 15:00"
   ];
 
+  // --- PROTEKSI HALAMAN (LANGSUNG DARI TAB / DIRECT URL) ---
   useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const token = getCookie('admin_token');
+
+    // Jika tidak ada cookie admin_token, langsung lempar ke halaman login/depan
+    if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
+      router.replace('/');
+      return;
+    }
+
     fetchJadwal();
-  }, []);
+  }, [router]);
 
   const fetchJadwal = async () => {
     try {
