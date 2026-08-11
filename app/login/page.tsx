@@ -25,6 +25,10 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.success) {
+        // --- TAMBAHAN PENTING: Set cookie admin_token saat login berhasil ---
+        const tokenValue = data.token || 'true';
+        document.cookie = `admin_token=${tokenValue}; path=/; max-age=86400;`;
+
         router.push('/adm/dashboard');
       } else {
         alert(data.message || "Username atau Password salah!");
@@ -86,7 +90,7 @@ export default function LoginPage() {
         {/* Form Login */}
         <form onSubmit={handleLogin} className="w-full space-y-3.5 px-1">
           <div>
-            <label className="block text-white font-semibold text-xs sm:text-sm mb-1 drop-shadow-sm">
+            <label className="block text-[#ffffff] font-semibold text-xs sm:text-sm mb-1 drop-shadow-sm">
               Username
             </label>
             <input
