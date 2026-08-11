@@ -93,28 +93,39 @@ export default function ObatObatanPage() {
       }}
     >
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto flex flex-col items-center text-center mb-8">
-        {/* Foto Obat */}
-        <div className="w-56 h-40 md:w-72 md:h-48 relative mb-3">
-          <Image
-            src="/images/obet.png"
-            alt="Ilustrasi Obat"
-            fill
-            className="object-contain"
-          />
-        </div>
-
-        {/* Judul */}
-        <h1 className="text-3xl md:text-4xl font-bold text-[#0A405A] mb-3">
-          Obat - Obatan
-        </h1>
-
-        {/* Deskripsi */}
-        <p className="text-gray-700 text-sm md:text-base leading-relaxed max-w-xl">
-          Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
-          ringan.
-        </p>
-      </div>
+      <section className="bg-transparent">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      
+              <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-8">
+      
+                {/* Kiri */}
+                <div className="max-w-2xl text-center lg:text-left">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0A405A] mb-4">
+                    Obat - obatan
+                  </h1>
+      
+                  <p className="text-gray-700 max-w-md text-sm md:text-base mx-auto lg:mx-0">
+                  Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
+                  ringan.
+                  </p>
+                </div>
+      
+                {/* Kanan */}
+                <div className="flex justify-center">
+                  <Image
+                    src="/images/obet.png"
+                    alt="Ilustrasi Obat"
+                    width={260}
+                    height={220}
+                    className="w-[180px] sm:w-[220px] lg:w-[260px] h-auto object-contain"
+                    priority
+                  />
+                </div>
+      
+              </div>
+      
+            </div>
+          </section>
 
       {loading && (
         <div className="text-center py-12 text-[#0A405A] font-semibold text-lg">
