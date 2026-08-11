@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import CatatanBox from "@/app/components/obatobatan/CatatanBox";
+import CatatanBox from "@/components/molecules/CatatanBox";
 
 // Tipe Data Disesuaikan dengan JSON Strapi v5
 interface GambarStrapi {

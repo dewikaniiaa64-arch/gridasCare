@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import HeroJadwal from "@/app/components/Jadwal_petugas_user/HeroJadwal";
-import JadwalList from "@/app/components/Jadwal_petugas_user/JadwalList";
+import HeroJadwal from "@/components/organisms/HeroJadwal";
+import JadwalList from "@/components/organisms/JadwalList";
 
 const STRAPI_URL =
   process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";

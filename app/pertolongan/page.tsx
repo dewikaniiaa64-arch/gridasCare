@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import HeroPertolongan from "@/app/components/pertolongan/HeroPertolongan";
-import PertolonganCard from "@/app/components/pertolongan/PertolonganCard";
-import WarningBox from "@/app/components/pertolongan/WarningBox";
+import HeroPertolongan from "@/components/organisms/HeroPertolongan";
+import PertolonganCard from "@/components/molecules/PertolonganCard";
+import WarningBox from "@/components/organisms/WarningBox";
 
 export default function PertolonganPage() {
   const [daftarPertolongan, setDaftarPertolongan] = useState<any[]>([]);
