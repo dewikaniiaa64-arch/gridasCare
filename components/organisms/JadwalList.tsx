@@ -63,6 +63,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
           SlotJadwal,
           "jam"
         >;
+
         if (targetSlot[dayKey]) {
           targetSlot[dayKey] = {
             nama: attr.nama || "-",
@@ -74,7 +75,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 md:overflow-x-auto md:pb-4 w-full justify-center">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
       {[
         { hari: "Senin", key: "senin" },
         { hari: "Selasa", key: "selasa" },
@@ -84,7 +85,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
       ].map((item) => (
         <div
           key={item.hari}
-          className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200 w-full max-w-sm md:max-w-none md:w-[260px] md:min-w-[260px] md:shrink-0 mx-auto md:mx-0"
+          className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200 w-full max-w-[280px]"
         >
           {/* Header Hari */}
           <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
@@ -101,6 +102,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
           <div className="flex flex-col divide-y divide-blue-300/60 flex-1">
             {structuredJadwal.map((slot, idx) => {
               const petugas = slot[item.key as keyof SlotJadwal] as Petugas;
+
               return (
                 <div
                   key={idx}
@@ -124,6 +126,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
                           stroke="#07479B"
                           strokeWidth="1.5"
                         />
+
                         <path
                           d="M15 10V15L17.5 17.5"
                           stroke="#07479B"
@@ -132,12 +135,13 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
                           strokeLinejoin="round"
                         />
                       </svg>
+
                       <span>{slot.jam}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
                       {/* Gambar Avatar / Person Hitam */}
-                      <div className="flex gap-3 items-center">
+                      <div className="flex gap-3 items-center shrink-0">
                         <img
                           src="/images/icon1.png"
                           alt="Icon"
@@ -149,6 +153,7 @@ export default function JadwalList({ jadwalList }: { jadwalList: any[] }) {
                         <p className="font-bold text-sm text-slate-900 leading-snug truncate">
                           {petugas?.nama || "-"}
                         </p>
+
                         <p className="text-xs text-slate-700 font-medium mt-0.5">
                           {petugas?.jabatan || "-"}
                         </p>
