@@ -3,21 +3,56 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // State untuk mengontrol muncul/sembunyinya Pop-up Logout
+  // State proteksi auth & modal
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // --- PROTEKSI HALAMAN (CLIENT-SIDE GUARD) ---
+  useEffect(() => {
+    // Fungsi membaca cookie sederhana
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const token = getCookie('admin_token');
+
+    // Cek jika token tidak ada, bernilai 'undefined', atau 'null'
+    if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
+      // Tendang langsung ke halaman login (atau halaman utama /)
+      router.replace('/');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [router]);
 
   // Fungsi penanganan logout sebenarnya
   const handleConfirmLogout = () => {
+    // Hapus cookie admin_token
+    document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
     setShowLogoutModal(false);
-    router.push('http://localhost:3000/');
+    // Menggunakan path relatif '/' agar bisa berjalan di localhost maupun Vercel
+    router.replace('/');
   };
+
+  // Tampilkan screen kosong / loading sebelum status auth terverifikasi
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-blue-400 text-white font-bold">
+        Memeriksa Akses...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-blue-400 overflow-x-hidden">
