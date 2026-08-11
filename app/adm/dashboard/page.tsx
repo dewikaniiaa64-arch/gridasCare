@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -17,43 +16,64 @@ interface SiswaSakitItem {
   keluhan: string;
   tanggal: string;
   penanganan: string;
+  status: string;
 }
+
+const STATUS_OPTIONS = [
+  "Istirahat di UKS",
+  "Kembali ke Kelas",
+  "Dipulangkan",
+  "Rujukan RS",
+];
 
 export default function AdminSiswaSakitPage() {
   const [dataSiswa, setDataSiswa] = useState<SiswaSakitItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // --- State Pagination ---
+  // PAGINATION
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // --- State Modal Export Laporan ---
+  // EXPORT
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel">("pdf");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // --- State Modal Hapus Data ---
+  // DETAIL
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SiswaSakitItem | null>(null);
+
+  // EDIT STATUS
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEditItem, setSelectedEditItem] = useState<SiswaSakitItem | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState("Istirahat di UKS");
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  // DELETE
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDeleteItem, setSelectedDeleteItem] = useState<{
     id: number;
     documentId?: string;
   } | null>(null);
 
+  // FETCH DATA DARI STRAPI
   const fetchDataSiswa = async () => {
     try {
       setLoading(true);
-      const res = await fetch(
-        "https://bmkvr3zj-1337.asse.devtunnels.ms/api/siswa-sakits?populate=*",
-      );
-      if (!res.ok) return;
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*`);
+
+      if (!res.ok) {
+        throw new Error("Gagal mengambil data dari Strapi");
+      }
 
       const result = await res.json();
       const rawData = result.data || [];
 
       const formatted: SiswaSakitItem[] = rawData.map((item: any) => {
         const attr = item.attributes || item;
+
         return {
           id: item.id,
           documentId: item.documentId,
@@ -62,6 +82,7 @@ export default function AdminSiswaSakitPage() {
           keluhan: attr.Keluhan || attr.keluhan || "-",
           tanggal: attr.Tanggal || attr.tanggal || "-",
           penanganan: attr.Penanganan || attr.penanganan || "-",
+          status: attr.Status_Siswa || attr.status_siswa || attr.Status || "Istirahat di UKS",
         };
       });
 
@@ -77,30 +98,110 @@ export default function AdminSiswaSakitPage() {
     fetchDataSiswa();
   }, []);
 
-  // Reset page ke 1 saat melakukan pencarian
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Buka Modal Konfirmasi Hapus
+  // STATUS STYLE
+  const getStatusStyle = (status: string) => {
+    const cleanStatus = status.trim();
+    switch (cleanStatus) {
+      case "Istirahat di UKS":
+        return "bg-yellow-100 text-yellow-700";
+      case "Kembali ke Kelas":
+        return "bg-green-100 text-green-700";
+      case "Dipulangkan":
+        return "bg-red-100 text-red-700";
+      case "Rujukan RS":
+        return "bg-blue-100 text-blue-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getStatusDot = (status: string) => {
+    const cleanStatus = status.trim();
+    switch (cleanStatus) {
+      case "Istirahat di UKS":
+        return "bg-yellow-500";
+      case "Kembali ke Kelas":
+        return "bg-green-500";
+      case "Dipulangkan":
+        return "bg-red-500";
+      case "Rujukan RS":
+        return "bg-blue-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // MODAL HANDLERS
+  const openDetailModal = (item: SiswaSakitItem) => {
+    setSelectedItem(item);
+    setShowDetailModal(true);
+  };
+
+  const openEditModal = (item: SiswaSakitItem) => {
+    setSelectedEditItem(item);
+    setSelectedStatus(item.status || "Istirahat di UKS");
+    setShowEditModal(true);
+  };
+
+  const updateStatus = async () => {
+    if (!selectedEditItem) return;
+
+    try {
+      setSavingStatus(true);
+      const targetId = selectedEditItem.documentId || selectedEditItem.id;
+
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits/${targetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            Status_Siswa: selectedStatus
+          },
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        const errorMsg = result?.error?.message || "Gagal mengubah status";
+        throw new Error(errorMsg);
+      }
+
+      alert("Status siswa berhasil diperbarui.");
+      setShowEditModal(false);
+      setSelectedEditItem(null);
+      await fetchDataSiswa();
+    } catch (error: any) {
+      console.error("Error update status:", error);
+      alert(`Gagal mengubah status siswa: ${error.message || "Periksa koneksi Strapi"}`);
+    } finally {
+      setSavingStatus(false);
+    }
+  };
+
   const openDeleteModal = (id: number, documentId?: string) => {
     setSelectedDeleteItem({ id, documentId });
     setShowDeleteModal(true);
   };
 
-  // Eksekusi Hapus Data dari Strapi
   const confirmDelete = async () => {
     if (!selectedDeleteItem) return;
 
     try {
       const targetId = selectedDeleteItem.documentId || selectedDeleteItem.id;
+
       const res = await fetch(`${STRAPI_URL}/api/siswa-sakits/${targetId}`, {
         method: "DELETE",
       });
 
       if (!res.ok) throw new Error("Gagal menghapus data");
 
-      fetchDataSiswa();
+      alert("Data berhasil dihapus.");
+      await fetchDataSiswa();
     } catch (error) {
       console.error("Error deleting:", error);
       alert("Terjadi kesalahan saat menghapus data.");
@@ -110,142 +211,155 @@ export default function AdminSiswaSakitPage() {
     }
   };
 
-  // Eksekusi Export Laporan Langsung ke Excel
+  // EXPORT FUNCTION
   const handleExportSubmit = () => {
-  let dataToExport = dataSiswa;
+    let dataToExport = dataSiswa;
 
-  // Filter tanggal
-  if (startDate && endDate) {
-    dataToExport = dataToExport.filter((item) => {
-      const itemDate = item.tanggal;
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-  }
-
-  // Cek data
-  if (!dataToExport || dataToExport.length === 0) {
-    alert("Tidak ada data untuk diexport!");
-    return;
-  }
-
-  // =========================
-  // EXPORT EXCEL
-  // =========================
-  if (exportFormat === "excel") {
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      "Laporan Data"
-    );
-
-    XLSX.writeFile(
-      workbook,
-      "Laporan_GridasCare.xlsx"
-    );
-  }
-
-  // =========================
-  // EXPORT PDF
-  // =========================
-  else if (exportFormat === "pdf") {
-    const doc = new jsPDF();
-
-    // Judul
-    doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    doc.text("Laporan Data Siswa Sakit", 14, 20);
-
-    // Subjudul
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      "GridasCare - Unit Kesehatan Sekolah",
-      14,
-      28
-    );
-
-    // Rentang tanggal
     if (startDate && endDate) {
-      doc.text(
-        `Periode: ${startDate} s/d ${endDate}`,
-        14,
-        36
-      );
+      dataToExport = dataToExport.filter((item) => {
+        const itemDate = item.tanggal;
+        return itemDate >= startDate && itemDate <= endDate;
+      });
     }
 
-    // Data tabel
-    const tableData = dataToExport.map((item, index) => [
-      index + 1,
-      item.nama,
-      item.kelas,
-      item.keluhan,
-      item.tanggal,
-      item.penanganan,
-    ]);
+    if (!dataToExport || dataToExport.length === 0) {
+      alert("Tidak ada data untuk diexport!");
+      return;
+    }
 
-    autoTable(doc, {
-      startY: startDate && endDate ? 42 : 36,
+    if (exportFormat === "excel") {
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Data");
+      XLSX.writeFile(workbook, "Laporan_GridasCare.xlsx");
+    } else if (exportFormat === "pdf") {
+      const doc = new jsPDF();
 
-      head: [
-        [
-          "No",
-          "Nama",
-          "Kelas",
-          "Keluhan",
-          "Tanggal",
-          "Penanganan",
+      try {
+        const logoUrl = "/images/pmi.png";
+        doc.addImage(logoUrl, "PNG", 14, 12, 12, 12);
+      } catch (err) {
+        console.log("Logo tidak ditemukan:", err);
+      }
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Laporan Data Siswa Sakit", 30, 18);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text("GridasCare - Unit Kesehatan Sekolah", 30, 24);
+
+      if (startDate && endDate) {
+        doc.setFontSize(9);
+        doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 34);
+      }
+
+      const tableData = dataToExport.map((item, index) => [
+        index + 1,
+        item.nama,
+        item.kelas,
+        item.keluhan,
+        item.tanggal,
+        item.penanganan,
+        item.status.trim(),
+      ]);
+
+      autoTable(doc, {
+        startY: startDate && endDate ? 40 : 32,
+        head: [
+          ["No", "Nama", "Kelas", "Keluhan", "Tanggal", "Penanganan", "Status"],
         ],
-      ],
+        body: tableData,
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: {
+          fillColor: [11, 58, 96],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        alternateRowStyles: { fillColor: [245, 248, 252] },
+      });
 
-      body: tableData,
+      doc.save("Laporan_GridasCare.pdf");
+    }
 
-      styles: {
-        fontSize: 9,
-        cellPadding: 3,
-      },
+    setShowExportModal(false);
+  };
 
-      headStyles: {
-        fillColor: [59, 145, 255],
-        textColor: 255,
-        fontStyle: "bold",
-      },
+  const generateSuratPDF = (item: SiswaSakitItem) => {
+    const doc = new jsPDF();
+    const isDipulangkan = item.status.trim() === "Dipulangkan";
 
-      alternateRowStyles: {
-        fillColor: [245, 248, 252],
-      },
-    });
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("SMK NEGERI 2 SUMEDANG", 105, 18, { align: "center" });
+    doc.setFontSize(12);
+    doc.text("UNIT KESEHATAN SEKOLAH (UKS)", 105, 25, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Jl. Arief Rakhman Hakim NO. 59 Sumedang ", 105, 30, { align: "center" });
 
-    // Download PDF
-    doc.save("Laporan_GridasCare.pdf");
-  }
+    doc.setLineWidth(0.8);
+    doc.line(20, 34, 190, 34);
 
-  setShowExportModal(false);
-};
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    const judulSurat = isDipulangkan
+      ? "SURAT KETERANGAN IZIN PULANG KARENA SAKIT"
+      : "SURAT RUJUKAN KESEHATAN";
+    doc.text(judulSurat, 105, 45, { align: "center" });
 
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Yang bertanda tangan di bawah ini Petugas UKS menerangkan bahwa:", 20, 58);
+
+    doc.text(`Nama Lengkap   : ${item.nama}`, 25, 68);
+    doc.text(`Kelas                : ${item.kelas}`, 25, 75);
+    doc.text(`Keluhan / Sakit   : ${item.keluhan}`, 25, 82);
+    doc.text(`Tanggal / Waktu  : ${item.tanggal}`, 25, 89);
+    doc.text(`Penanganan      : ${item.penanganan}`, 25, 96);
+
+    const deskripsi = isDipulangkan
+      ? "Siswa tersebut di atas dinyatakan perlu DIPULANGKAN untuk beristirahat di rumah/penanganan lebih lanjut oleh orang tua."
+      : "Siswa tersebut di atas perlu DIRUJUK ke Fasilitas Kesehatan / Rumah Sakit untuk penanganan medis lebih lanjut.";
+
+    doc.text(deskripsi, 20, 110, { maxWidth: 170 });
+    doc.text("Demikian surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.", 20, 125);
+
+    doc.text("Sumedang, " + item.tanggal.split(" ")[0], 140, 145);
+    doc.text("Petugas UKS,", 140, 152);
+    doc.text("( ..................................... )", 140, 180);
+
+    const namaFile = isDipulangkan
+      ? `Surat_Izin_Pulang_${item.nama.replace(/\s+/g, "_")}.pdf`
+      : `Surat_Rujukan_${item.nama.replace(/\s+/g, "_")}.pdf`;
+
+    doc.save(namaFile);
+  };
+
+  // FILTER & PAGINATION
   const filteredData = dataSiswa.filter(
     (item) =>
       item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.tanggal.includes(searchQuery) ||
-      item.kelas.toLowerCase().includes(searchQuery.toLowerCase()),
+      item.tanggal.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.kelas.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.keluhan.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- Logika Slice untuk Pagination ---
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
-    <div className="p-10 w-full bg-white min-h-screen relative">
-      <h1 className="text-3xl font-bold text-[#3B91FF] mb-6">
-        Data Siswa Sakit
+    <div className="p-4 sm:p-6 md:p-10 w-full bg-white min-h-screen relative">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#3B91FF] mb-4 sm:mb-6">
+        Riwayat Siswa Sakit
       </h1>
 
-      <div className="bg-[#EAEFF5] rounded-3xl p-6 shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+      <div className="bg-[#EAEFF5] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        {/* SEARCH + EXPORT */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
           <div className="relative w-full sm:w-72">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
               <svg
@@ -265,7 +379,7 @@ export default function AdminSiswaSakitPage() {
             </span>
             <input
               type="text"
-              placeholder="Cari siswa/Tanggal"
+              placeholder="Cari siswa/tanggal/kelas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white rounded-full border border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
@@ -274,11 +388,11 @@ export default function AdminSiswaSakitPage() {
 
           <button
             onClick={() => setShowExportModal(true)}
-            className="bg-[#0D2840] text-white px-5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
+            className="bg-[#0D2840] text-white px-5 py-2.5 sm:py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
           >
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 40 35"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -296,8 +410,8 @@ export default function AdminSiswaSakitPage() {
           </button>
         </div>
 
-        {/* Tabel Desktop */}
-        <div className="hidden lg:block bg-white rounded-2xl overflow-hidden shadow-xs border border-gray-200">
+        {/* TABEL DESKTOP (Layar Besar) */}
+        <div className="hidden lg:block bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#93C5FD] text-[#0D2840] text-xs font-bold uppercase tracking-wider border-b border-blue-200">
@@ -305,18 +419,16 @@ export default function AdminSiswaSakitPage() {
                 <th className="px-4 py-3.5">Nama</th>
                 <th className="px-4 py-3.5">Kelas</th>
                 <th className="px-4 py-3.5">Keluhan</th>
-                <th className="px-4 py-3.5">Tanggal</th>
+                <th className="px-4 py-3.5">Tanggal & Waktu</th>
                 <th className="px-4 py-3.5">Penanganan</th>
-                <th className="px-4 py-3.5 text-center w-16">Aksi</th>
+                <th className="px-4 py-3.5 text-center">Status</th>
+                <th className="px-4 py-3.5 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                     Memuat data dari Strapi...
                   </td>
                 </tr>
@@ -334,37 +446,46 @@ export default function AdminSiswaSakitPage() {
                     <td className="px-4 py-3">{item.tanggal}</td>
                     <td className="px-4 py-3">{item.penanganan}</td>
                     <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() =>
-                          openDeleteModal(item.id, item.documentId)
-                        }
-                        className="text-red-500 hover:text-red-700 transition cursor-pointer p-1"
-                        title="Hapus Data"
+                      <span
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold whitespace-nowrap ${getStatusStyle(
+                          item.status
+                        )}`}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mx-auto"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full ${getStatusDot(
+                            item.status
+                          )}`}
+                        />
+                        {item.status.trim()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => openDetailModal(item)}
+                          className="border border-gray-300 bg-white text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-semibold"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
+                          Lihat
+                        </button>
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="border border-gray-300 bg-white text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer flex items-center gap-1.5 font-semibold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(item.id, item.documentId)}
+                          className="border border-red-200 bg-white text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer flex items-center gap-1.5 font-semibold"
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                     Belum ada data siswa sakit yang tercatat.
                   </td>
                 </tr>
@@ -373,57 +494,84 @@ export default function AdminSiswaSakitPage() {
           </table>
         </div>
 
-        {/* Tampilan Mobile */}
-        <div className="lg:hidden space-y-4 mt-5">
+        {/* TAMPILAN MOBILE & TABLET (Layar Kecil / Kartu) */}
+        <div className="lg:hidden space-y-3">
           {loading ? (
-            <div className="text-center py-6">Memuat data...</div>
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Memuat data dari Strapi...
+            </div>
           ) : currentData.length > 0 ? (
-            currentData.map((item) => (
+            currentData.map((item, index) => (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl shadow border border-gray-200 p-4"
+                className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-3 text-xs"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-2 border-b pb-2">
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">
-                      {item.nama}
-                    </h2>
-                    <p className="text-blue-500 text-sm">{item.kelas}</p>
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase">
+                      #{indexOfFirstItem + index + 1}
+                    </span>
+                    <h3 className="font-bold text-sm text-gray-900">{item.nama}</h3>
+                    <p className="text-gray-500 text-[11px]">{item.kelas}</p>
                   </div>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap ${getStatusStyle(
+                      item.status
+                    )}`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${getStatusDot(
+                        item.status
+                      )}`}
+                    />
+                    {item.status.trim()}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-gray-700">
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Tanggal:</span>
+                    <p className="font-medium">{item.tanggal}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 block text-[10px]">Keluhan:</span>
+                    <p className="font-medium line-clamp-1">{item.keluhan}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => openDetailModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Lihat
+                  </button>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-lg text-[11px] font-semibold"
+                  >
+                    Edit
+                  </button>
                   <button
                     onClick={() => openDeleteModal(item.id, item.documentId)}
-                    className="text-red-500 text-xl cursor-pointer"
+                    className="border border-red-200 bg-white text-red-500 px-3 py-1 rounded-lg text-[11px] font-semibold"
                   >
-                    🗑️
+                    Hapus
                   </button>
-                </div>
-                <div className="mt-4 space-y-2 text-sm">
-                  <div>
-                    <p className="text-gray-400">Keluhan</p>
-                    <p>{item.keluhan}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Tanggal</p>
-                    <p>{item.tanggal}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Penanganan</p>
-                    <p>{item.penanganan}</p>
-                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-6 text-gray-400">
-              Belum ada data siswa sakit.
+            <div className="bg-white p-6 rounded-2xl text-center text-xs text-gray-400">
+              Belum ada data siswa sakit yang tercatat.
             </div>
           )}
         </div>
 
-        {/* Pagination Controls */}
+        {/* PAGINATION */}
         {!loading && totalPages > 1 && (
-          <div className="flex justify-between items-center mt-6 px-2">
-            <span className="text-xs text-gray-600">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 px-1">
+            <span className="text-xs text-gray-600 text-center sm:text-left">
               Menampilkan {indexOfFirstItem + 1} -{" "}
               {Math.min(indexOfLastItem, filteredData.length)} dari{" "}
               {filteredData.length} data
@@ -432,33 +580,16 @@ export default function AdminSiswaSakitPage() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
               >
                 Sebelumnya
               </button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                        currentPage === page
-                          ? "bg-[#3B91FF] text-white"
-                          : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ),
-                )}
-              </div>
               <button
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 disabled:opacity-50 cursor-pointer"
               >
                 Selanjutnya
               </button>
@@ -467,175 +598,227 @@ export default function AdminSiswaSakitPage() {
         )}
       </div>
 
-      {/* ==================== POP UP EXPORT LAPORAN ==================== */}
+      {/* MODAL DETAIL */}
+      {showDetailModal && selectedItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">
+                Detail Siswa Sakit
+              </h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-gray-500 text-xl font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3 text-xs sm:text-sm text-black">
+              <p><b>Nama:</b> {selectedItem.nama}</p>
+              <p><b>Kelas:</b> {selectedItem.kelas}</p>
+              <p><b>Keluhan:</b> {selectedItem.keluhan}</p>
+              <p><b>Tanggal & Waktu:</b> {selectedItem.tanggal}</p>
+              <p><b>Penanganan:</b> {selectedItem.penanganan}</p>
+              <div>
+                <b>Status:</b>
+                <div className="mt-1.5">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-semibold ${getStatusStyle(
+                      selectedItem.status
+                    )}`}
+                  >
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${getStatusDot(
+                        selectedItem.status
+                      )}`}
+                    />
+                    {selectedItem.status.trim()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tombol Cetak Surat khusus Dipulangkan & Rujukan RS */}
+            {["Dipulangkan", "Rujukan RS"].includes(selectedItem.status.trim()) && (
+              <div className="mt-5 pt-4 border-t">
+                <button
+                  onClick={() => generateSuratPDF(selectedItem)}
+                  className="w-full bg-[#0D2840] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
+                  </svg>
+                  Cetak Surat {selectedItem.status.trim() === "Dipulangkan" ? "Izin Pulang" : "Rujukan"}
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="w-full mt-3 border border-gray-400 px-4 py-2.5 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDIT */}
+      {showEditModal && selectedEditItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-black">Edit Status Siswa</h2>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-gray-500 text-xl p-1 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="text-xs sm:text-sm text-black">
+                <p><b>Nama:</b> {selectedEditItem.nama}</p>
+                <p className="mt-1"><b>Kelas:</b> {selectedEditItem.kelas}</p>
+              </div>
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-black mb-2">
+                  Ubah Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-black bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  {STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status.trim()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6 border-t pt-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                disabled={savingStatus}
+                className="border border-gray-400 px-4 py-2 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-100 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={updateStatus}
+                disabled={savingStatus}
+                className="bg-[#3B91FF] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
+              >
+                {savingStatus ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EXPORT */}
       {showExportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
-            <div className="bg-[#0B3A60] px-6 py-4 flex justify-between items-center text-white">
-              <div className="flex items-center gap-2 font-bold text-lg">
-                <div className="relative w-6 h-6 shrink-0">
-                  <Image
-                    src="/images/pmi.png"
-                    alt="Icon PMI"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
+          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-[#0B3A60] px-5 py-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2 font-bold text-base sm:text-lg">
                 <span>
                   gridas<span className="text-red-500">Care</span>
                 </span>
               </div>
               <button
                 onClick={() => setShowExportModal(false)}
-                className="flex items-center gap-1 text-sm font-semibold hover:text-gray-300 transition cursor-pointer"
+                className="text-xs sm:text-sm font-semibold cursor-pointer p-1"
               >
-                Close
+                Tutup
               </button>
             </div>
-
-            <div className="p-6">
-              <h3 className="font-bold text-black text-lg mb-4">
+            <div className="p-5 sm:p-6">
+              <h3 className="font-bold text-black text-base sm:text-lg mb-4">
                 Pilih Format Export Laporan
               </h3>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <div
                   onClick={() => setExportFormat("pdf")}
-                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${
-                    exportFormat === "pdf"
-                      ? "border-blue-600 bg-blue-50/30"
-                      : "border-gray-800 hover:border-blue-400"
-                  }`}
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
+                      ? "border-red-500 bg-red-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                    }`}
                 >
-                  <div className="w-12 h-12 flex items-center justify-center mb-2">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z"
-                        fill="#1447E6"
-                      />
-                      <path
-                        d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z"
-                        fill="white"
-                        fillOpacity="0.3"
-                      />
-                      <g clipPath="url(#clip0_867_4725)">
-                        <path
-                          d="M26.8903 25.8319C25.8147 24.6816 22.8775 25.1503 22.1743 25.2355C21.1401 24.2129 20.4369 22.9774 20.1887 22.5514C20.561 21.4011 20.8091 20.2508 20.8505 19.0154C20.8505 17.9502 20.4369 16.8 19.2785 16.8C18.8648 16.8 18.4925 17.0555 18.2856 17.3964C17.7892 18.2911 17.996 20.0805 18.782 21.9125C18.327 23.2331 17.9133 24.5112 16.755 26.7693C15.5553 27.2804 13.0318 28.4734 12.825 29.7515C12.7422 30.1349 12.8663 30.5185 13.1559 30.8166C13.4455 31.0722 13.8178 31.2 14.1901 31.2C15.7207 31.2 17.21 29.0273 18.2442 27.1952C19.113 26.897 20.4782 26.471 21.8433 26.2153C23.4567 27.6639 24.8632 27.8768 25.6079 27.8768C26.6007 27.8768 26.9731 27.4508 27.0971 27.0673C27.3039 26.6414 27.1798 26.1727 26.8903 25.8319ZM25.856 26.5562C25.8147 26.8545 25.4425 27.1526 24.7805 26.9822C23.9945 26.7693 23.2912 26.3858 22.6707 25.8745C23.2085 25.7892 24.4081 25.6615 25.2769 25.8319C25.6079 25.9171 25.9388 26.1301 25.856 26.5562ZM18.9476 17.7798C19.0303 17.652 19.1544 17.5668 19.2785 17.5668C19.6508 17.5668 19.7335 18.0354 19.7335 18.4189C19.6921 19.3137 19.5266 20.2083 19.2371 21.0604C18.6165 19.3562 18.7407 18.1632 18.9476 17.7798ZM18.8648 26.045C19.1958 25.3633 19.6509 24.1703 19.8163 23.659C20.1886 24.298 20.8091 25.065 21.1401 25.4058C21.1401 25.4485 19.8577 25.704 18.8648 26.045ZM16.4241 27.7491C15.4726 29.368 14.4797 30.3905 13.9419 30.3905C13.8592 30.3905 13.7764 30.3479 13.6937 30.3053C13.5695 30.22 13.5282 30.0923 13.5695 29.9219C13.6937 29.3255 14.7693 28.516 16.4241 27.7491Z"
-                          fill="white"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_867_4725">
-                          <rect
-                            width="16"
-                            height="16"
-                            fill="white"
-                            transform="translate(12 16)"
-                          />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </div>
-                  <span className="font-bold text-sm text-black text-center">
+                  <svg className="w-10 h-12 mb-2" viewBox="0 0 384 512" fill="none">
+                    <path d="M224 136V0H24C10.7 0 0 10.7 0 24V488C0 501.3 10.7 512 24 512H360C373.3 512 384 501.3 384 488V160H248C234.7 160 224 149.3 224 136Z" fill="#1A5CFF" />
+                    <path d="M377 105L279 7C273 1 265 0 256 0V128H384C384 119 383 111 377 105Z" fill="#93C5FD" />
+                    <text x="192" y="360" fill="white" fontSize="110" fontWeight="bold" textAnchor="middle">PDF</text>
+                  </svg>
+
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
                     Cetak Laporan Rapi
                   </span>
-                  <span className="text-xs text-gray-500">(PDF)</span>
+                  <span className="text-xs text-red-500 font-semibold">(PDF)</span>
                 </div>
 
                 <div
                   onClick={() => setExportFormat("excel")}
-                  className={`border-2 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition ${
-                    exportFormat === "excel"
-                      ? "border-green-600 bg-green-50/30"
-                      : "border-gray-800 hover:border-green-400"
-                  }`}
+                  className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
+                      ? "border-green-600 bg-green-50/60 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                    }`}
                 >
-                  <div className="w-12 h-12 flex items-center justify-center mb-2">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z"
-                        fill="#079455"
-                      />
-                      <path
-                        d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z"
-                        fill="white"
-                        fillOpacity="0.3"
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M17.5383 18.2857C16.1396 18.2857 15.5229 18.4089 14.897 18.7437C14.3398 19.0417 13.899 19.4824 13.601 20.0397C13.2663 20.6656 13.1431 21.2822 13.1431 22.681V25.3191C13.1431 26.7178 13.2663 27.3344 13.601 27.9603C13.899 28.5176 14.3398 28.9583 14.897 29.2564C15.5229 29.5911 16.1396 29.7143 17.5383 29.7143H22.4621C23.8608 29.7143 24.4775 29.5911 25.1034 29.2564C25.6606 28.9583 26.1014 28.5176 26.3994 27.9603C26.7341 27.3344 26.8574 26.7178 26.8574 25.3191V22.681C26.8574 21.2822 26.7341 20.6656 26.3994 20.0397C26.1014 19.4824 25.6606 19.0417 25.1034 18.7437C24.4775 18.4089 23.8608 18.2857 22.4621 18.2857H17.5383ZM15.436 19.7514C15.8136 19.5495 16.204 19.4286 17.5383 19.4286H19.4288V21.7143H14.3171C14.3653 21.1149 14.4671 20.8436 14.6088 20.5787C14.8003 20.2206 15.0779 19.943 15.436 19.7514ZM19.4288 22.8571H14.2859V25.1429H19.4288V22.8571ZM20.5716 25.1429V22.8571H25.7145V25.1429H20.5716ZM19.4288 26.2857H14.3171C14.3653 26.8851 14.4671 27.1564 14.6088 27.4213C14.8003 27.7794 15.0779 28.0571 15.436 28.2486C15.8136 28.4505 16.204 28.5714 17.5383 28.5714H19.4288V26.2857ZM20.5716 28.5714V26.2857H25.6833C25.6351 26.8851 25.5333 27.1564 25.3916 27.4213C25.2001 27.7794 24.9225 28.0571 24.5644 28.2486C24.1868 28.4505 23.7964 28.5714 22.4621 28.5714H20.5716ZM20.5716 21.7143V19.4286H22.4621C23.7964 19.4286 24.1868 19.5495 24.5644 19.7514C24.9225 19.943 25.2001 20.2206 25.3916 20.5787C25.5333 20.8436 25.6351 21.1149 25.6833 21.7143H20.5716Z"
-                        fill="white"
-                      />
-                    </svg>
-                  </div>
-                  <span className="font-bold text-sm text-black text-center">
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M9.57031 0H24L36 12V34.7926C36 37.6712 33.5088 40 30.4403 40H9.57031C6.49114 40 4 37.6712 4 34.7926V5.20738C3.99995 2.32883 6.49108 0 9.57031 0Z" fill="#079455" />
+                    <path d="M24 8.16406V0L36 12H28.0171C24.4248 12 24 9.47141 24 8.16406Z" fill="white" fillOpacity="0.3" />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M17.5381 18.2857C16.1393 18.2857 15.5227 18.4089 14.8968 18.7436C14.3395 19.0417 13.8988 19.4824 13.6008 20.0397C13.266 20.6656 13.1428 21.2822 13.1428 22.6809V25.319C13.1428 26.7178 13.266 27.3344 13.6008 27.9603C13.8988 28.5176 14.3395 28.9583 14.8968 29.2563C15.5227 29.5911 16.1393 29.7143 17.5381 29.7143H22.4619C23.8606 29.7143 24.4772 29.5911 25.1031 29.2563C25.6604 28.9583 26.1011 28.5176 26.3992 27.9603C26.7339 27.3344 26.8571 26.7178 26.8571 25.319V22.6809C26.8571 21.2822 26.7339 20.6656 26.3992 20.0397C26.1011 19.4824 25.6604 19.0417 25.1031 18.7436C24.4772 18.4089 23.8606 18.2857 22.4619 18.2857H17.5381ZM15.4358 19.7514C15.8133 19.5495 16.2038 19.4286 17.5381 19.4286H19.4285V21.7143H14.3169C14.365 21.1149 14.4669 20.8436 14.6086 20.5787C14.8001 20.2206 15.0777 19.9429 15.4358 19.7514ZM19.4285 22.8571H14.2857V25.1428H19.4285V22.8571ZM20.5714 25.1428V22.8571H25.7143V25.1428H20.5714ZM19.4285 26.2857H14.3169C14.365 26.8851 14.4669 27.1564 14.6086 27.4213C14.8001 27.7794 15.0777 28.057 15.4358 28.2485C15.8133 28.4505 16.2038 28.5714 17.5381 28.5714H19.4285V26.2857ZM20.5714 28.5714V26.2857H25.683C25.6349 26.8851 25.5331 27.1564 25.3914 27.4213C25.1999 27.7794 24.9223 28.057 24.5642 28.2485C24.1866 28.4505 23.7961 28.5714 22.4619 28.5714H20.5714ZM20.5714 21.7143V19.4286H22.4619C23.7961 19.4286 24.1866 19.5495 24.5642 19.7514C24.9223 19.9429 25.1999 20.2206 25.3914 20.5787C25.5331 20.8436 25.6349 21.1149 25.683 21.7143H20.5714Z" fill="white" />
+                  </svg>
+
+                  <span className="font-bold text-xs sm:text-sm text-gray-800">
                     Data Mentah
                   </span>
-                  <span className="text-xs text-gray-500">(Excel .Xlsx)</span>
+                  <span className="text-xs text-green-600 font-semibold">
+                    (Excel .xlsx)
+                  </span>
                 </div>
               </div>
 
-              <h4 className="font-bold text-black text-md mb-2">
-                Rentang Tanggal{" "}
-                <span className="font-normal text-gray-500 text-sm">
-                  (opsional)
-                </span>
-              </h4>
-
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                 <div>
-                  <label className="block text-xs font-semibold text-black mb-1">
-                    Mulai
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Tanggal Mulai
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full border border-gray-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-black mb-1">
-                    Sampai
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Tanggal Selesai
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full border border-gray-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs text-black"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-between items-center gap-4">
-                <button
-                  onClick={handleExportSubmit}
-                  className="bg-[#0B2545] text-white px-8 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-800 transition cursor-pointer"
-                >
-                  Export Sekarang
-                </button>
+              <div className="flex flex-col-reverse sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-4">
                 <button
                   onClick={() => setShowExportModal(false)}
-                  className="border border-gray-800 text-gray-800 px-8 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition cursor-pointer"
+                  className="border border-gray-800 text-gray-800 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-gray-100 transition text-center"
                 >
                   Batal
+                </button>
+                <button
+                  onClick={handleExportSubmit}
+                  className="bg-[#0B2545] text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer hover:bg-slate-800 transition text-center"
+                >
+                  Export Sekarang
                 </button>
               </div>
             </div>
@@ -643,24 +826,23 @@ export default function AdminSiswaSakitPage() {
         </div>
       )}
 
-      {/* ==================== POP UP KONFIRMASI HAPUS ==================== */}
+      {/* MODAL HAPUS */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-8 border border-gray-300 shadow-2xl text-center">
-            <h3 className="text-lg sm:text-xl font-bold text-black mb-8">
-              Apakah kamu yakin ingin menghapusnya?
+          <div className="bg-white w-full max-w-sm sm:max-w-md rounded-2xl p-6 sm:p-8 border border-gray-300 shadow-2xl text-center">
+            <h3 className="text-base sm:text-lg font-bold text-black mb-6">
+              Apakah kamu yakin ingin menghapus data ini?
             </h3>
-
-            <div className="flex justify-center items-center gap-6">
+            <div className="flex justify-center items-center gap-4">
               <button
                 onClick={confirmDelete}
-                className="bg-red-500 text-white font-bold px-10 py-2.5 rounded-lg border border-red-600 hover:bg-red-600 transition cursor-pointer"
+                className="bg-red-500 text-white font-bold px-6 sm:px-8 py-2 rounded-lg hover:bg-red-600 text-xs sm:text-sm cursor-pointer"
               >
                 Ya
               </button>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="bg-white text-black font-bold px-10 py-2.5 rounded-lg border border-gray-800 hover:bg-gray-100 transition cursor-pointer"
+                className="bg-white text-black font-bold px-6 sm:px-8 py-2 rounded-lg border border-gray-800 hover:bg-gray-100 text-xs sm:text-sm cursor-pointer"
               >
                 Tidak
               </button>
