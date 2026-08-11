@@ -62,7 +62,8 @@ export default function AdminSiswaSakitPage() {
   const fetchDataSiswa = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*`);
+      // Mengurutkan data berdasarkan tanggal dibuat (createdAt) secara descending
+      const res = await fetch(`${STRAPI_URL}/api/siswa-sakits?populate=*&sort=createdAt:desc`);
 
       if (!res.ok) {
         throw new Error("Gagal mengambil data dari Strapi");
@@ -373,7 +374,7 @@ export default function AdminSiswaSakitPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 0 0114 0z"
                 />
               </svg>
             </span>
@@ -744,8 +745,8 @@ export default function AdminSiswaSakitPage() {
                 <div
                   onClick={() => setExportFormat("pdf")}
                   className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "pdf"
-                      ? "border-red-500 bg-red-50/60 shadow-sm"
-                      : "border-gray-200 hover:border-gray-300"
+                    ? "border-red-500 bg-red-50/60 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300"
                     }`}
                 >
                   <svg className="w-10 h-12 mb-2" viewBox="0 0 384 512" fill="none">
@@ -763,8 +764,8 @@ export default function AdminSiswaSakitPage() {
                 <div
                   onClick={() => setExportFormat("excel")}
                   className={`border-2 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center cursor-pointer transition ${exportFormat === "excel"
-                      ? "border-green-600 bg-green-50/60 shadow-sm"
-                      : "border-gray-200 hover:border-gray-300"
+                    ? "border-green-600 bg-green-50/60 shadow-sm"
+                    : "border-gray-200 hover:border-gray-300"
                     }`}
                 >
                   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-2">
