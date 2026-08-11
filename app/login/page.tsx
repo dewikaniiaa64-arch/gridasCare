@@ -8,21 +8,36 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (username === "admin" && password === "caregridas") {
-      router.push('/adm/dashboard');
-    } else {
-      alert("Username atau Password salah!");
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        router.push('/adm/dashboard');
+      } else {
+        alert(data.message || "Username atau Password salah!");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      {/* 1. Background Image Utama */}
       <Image
         src="/images/login.png"
         alt="Background"
@@ -31,21 +46,19 @@ export default function LoginPage() {
         className="object-cover"
       />
 
-      {/* 2. Overlay Lapisan Transparan Sesuai Figma */}
-      <div className="absolute inset-0 bg-black/60"></div>
-
-      {/* 3. Icon Home di Pojok Kiri Atas */}
+      <div className="absolute inset-0 bg-black/25"></div>
       <Link
         href="/"
-        className="absolute top-6 left-6 z-20 text-gray-500 hover:text-black transition-colors"
+        aria-label="Kembali ke Beranda"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 text-black/50 hover:text-black/60 transition-colors p-1"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          strokeWidth={1.8}
+          strokeWidth={2}
           stroke="currentColor"
-          className="w-8 h-8 md:w-10 md:h-10 drop-shadow-sm"
+          className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9"
         >
           <path
             strokeLinecap="round"
@@ -55,57 +68,58 @@ export default function LoginPage() {
         </svg>
       </Link>
 
+      <div className="relative z-10 bg-cyan-600/95 py-5 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[300px] sm:max-w-sm border border-black/60 text-white flex flex-col items-center">
 
-      <div className="relative z-10 bg-cyan-600 p-10 md:p-12 rounded-[32px] shadow-2xl w-full max-w-sm md:max-w-md border-2 border-black/80 text-white flex flex-col items-center">
-
-        {/* Header Logo UKS & Nama App */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 md:w-20 md:h-20 mb-2 relative flex items-center justify-center">
+        <div className="flex flex-col items-center mb-4 sm:mb-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 relative flex items-center justify-center">
             <img
               src="/images/pmi.png"
               alt="Logo UKS"
               className="w-full h-full object-contain drop-shadow"
             />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white drop-shadow-sm">
             gridas<span className="text-red-500">Care</span>
           </h2>
         </div>
 
         {/* Form Login */}
-        <form onSubmit={handleLogin} className="w-full space-y-5 px-2">
+        <form onSubmit={handleLogin} className="w-full space-y-3.5 px-1">
           <div>
-            <label className="block text-white font-semibold text-lg mb-1.5 drop-shadow-sm">
+            <label className="block text-white font-semibold text-xs sm:text-sm mb-1 drop-shadow-sm">
               Username
             </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-400 shadow-inner"
+              className="w-full px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-white text-gray-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-300 shadow-inner"
+              placeholder="Username"
               required
             />
           </div>
 
           <div>
-            <label className="block text-white font-semibold text-lg mb-1.5 drop-shadow-sm">
+            <label className="block text-white font-semibold text-xs sm:text-sm mb-1 drop-shadow-sm">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-full bg-white text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-400 shadow-inner"
+              className="w-full px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-white text-gray-800 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 border border-gray-300 shadow-inner"
+              placeholder="Password"
               required
             />
           </div>
 
-          <div className="pt-4 flex justify-center">
+          <div className="pt-2 flex justify-center">
             <button
               type="submit"
-              className="w-1/2 bg-[#0066FF] text-white py-2.5 rounded-full font-bold text-lg hover:bg-blue-600 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer"
+              disabled={loading}
+              className="w-3/5 sm:w-1/2 bg-blue-600 text-white py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:bg-blue-400 transition-all shadow-md active:scale-95 border border-black/20 cursor-pointer disabled:opacity-50"
             >
-              Login
+              {loading ? 'Memproses...' : 'Login'}
             </button>
           </div>
         </form>

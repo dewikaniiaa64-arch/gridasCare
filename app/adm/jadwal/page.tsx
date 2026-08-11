@@ -1,274 +1,345 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { IoArrowBack } from "react-icons/io5";
 
-interface Petugas {
-  nama: string;
-  jabatan: string;
-}
-
-interface SlotJadwal {
-  jam: string;
-  senin: Petugas;
-  selasa: Petugas;
-  rabu: Petugas;
-  kamis: Petugas;
-  jumat: Petugas;
-}
-
-const initialJadwalData: SlotJadwal[] = [
-  {
-    jam: '07:00-09:00',
-    senin: { nama: 'Syrin Alya Nafisa', jabatan: 'Wakil Ketua' },
-    selasa: { nama: 'Zhao Yu', jabatan: 'Bendahara' },
-    rabu: { nama: 'Rizka Adistiyanti J', jabatan: 'Anggota' },
-    kamis: { nama: 'Kirana Kalisha', jabatan: 'Anggota' },
-    jumat: { nama: 'Zaki Arya P', jabatan: 'Anggota' },
-  },
-  {
-    jam: '09:00-11:00',
-    senin: { nama: 'Nashylla Nur S', jabatan: 'Sekretaris' },
-    selasa: { nama: 'Cantika Khoerun N', jabatan: 'Keamanan' },
-    rabu: { nama: 'Anggraeni Ayu', jabatan: 'Anggota' },
-    kamis: { nama: 'Imelda Novianti', jabatan: 'Anggota' },
-    jumat: { nama: 'Zhang Linghe', jabatan: 'Anggota' },
-  },
-  {
-    jam: '11:00-13:00',
-    senin: { nama: 'Kania Dewi', jabatan: 'Ketua' },
-    selasa: { nama: 'Annisa Nabila V', jabatan: 'Anggota' },
-    rabu: { nama: 'Ira Maulida', jabatan: 'Anggota' },
-    kamis: { nama: 'Cici Wahyuningsih', jabatan: 'Anggota' },
-    jumat: { nama: 'Zhou Yiran', jabatan: 'Anggota' },
-  },
-  {
-    jam: '13:00-15:00',
-    senin: { nama: 'Aila Shinta', jabatan: 'Anggota' },
-    selasa: { nama: 'Sherya Demiya', jabatan: 'Anggota' },
-    rabu: { nama: 'Diyah Siti F', jabatan: 'Anggota' },
-    kamis: { nama: 'Riska Mufika', jabatan: 'Anggota' },
-    jumat: { nama: 'Lu Yixiao', jabatan: 'Anggota' },
-  },
-];
+// PASTIKAN URL INI SESUAI DENGAN PORT 1337 DI VS CODE PORTS TAB
+const API_URL = "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss";
 
 export default function AdminJadwalPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [jadwalData, setJadwalData] = useState<SlotJadwal[]>(initialJadwalData);
+  const [dataJadwal, setDataJadwal] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
   const [formData, setFormData] = useState({
-    nama: '',
-    jabatan: 'Anggota',
-    hari: 'Senin',
-    jam: '07:00-09:00',
+    Nama: "",
+    Jabatan: "",
+    Hari: "",
+    Jam: "",
   });
 
-  const handleSimpan = (e: React.FormEvent) => {
-    e.preventDefault();
+  const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at"];
+  const jamList = [
+    "07:00 - 09:00",
+    "09:00 - 11:00",
+    "11:00 - 13:00",
+    "13:00 - 15:00"
+  ];
 
-    if (!formData.nama.trim()) {
-      alert('Nama petugas wajib diisi!');
+  useEffect(() => {
+    fetchJadwal();
+  }, []);
+
+  const fetchJadwal = async () => {
+    try {
+      const res = await fetch(`${API_URL}?populate=*`, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Tunnel-Skip-Browser-Warning": "true", // Header wajib untuk Devtunnels
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Gagal memuat data (Status: ${res.status})`);
+      }
+
+      const result = await res.json();
+      setDataJadwal(result.data || []);
+    } catch (error) {
+      console.error('Error saat fetch Strapi:', error);
+      alert("Koneksi ke Strapi terputus. Pastikan URL Devtunnel dapat dibuka di tab browser baru.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!formData.Hari || !formData.Jam) {
+      alert("Pilih Hari dan Jam terlebih dahulu untuk menentukan jadwal yang ingin diedit!");
       return;
     }
 
-    const dayKeyMap: Record<string, keyof Omit<SlotJadwal, 'jam'>> = {
-      Senin: 'senin',
-      Selasa: 'selasa',
-      Rabu: 'rabu',
-      Kamis: 'kamis',
-      "Jum'at": 'jumat',
-      Jumat: 'jumat',
+    const currentPayload = { ...formData };
+    const [jamMulai, jamSelesai] = currentPayload.Jam.split(" - ");
+    const jamMulaiFormat = `${jamMulai}:00.000`;
+    const jamSelesaiFormat = `${jamSelesai}:00.000`;
+
+    const selectedHariClean = currentPayload.Hari.trim().toLowerCase().replace("'", "").replace("’", "");
+    const selectedJamMulaiClean = jamMulai.trim();
+
+    // Cari data lama jika ada
+    const targetItem = dataJadwal.find((item: any) => {
+      const attr = item.attributes || item;
+      const dbHariClean = attr.Hari ? String(attr.Hari).trim().toLowerCase().replace("'", "").replace("’", "") : "";
+
+      let dbJamMulaiClean = "";
+      if (attr.Jam_Mulai) {
+        dbJamMulaiClean = String(attr.Jam_Mulai).slice(0, 5).trim();
+      } else if (attr.jam) {
+        dbJamMulaiClean = String(attr.jam).split("-")[0].trim();
+      }
+
+      return dbHariClean === selectedHariClean && dbJamMulaiClean === selectedJamMulaiClean;
+    });
+
+    const previousJadwal = [...dataJadwal];
+
+    const bodyPayload = {
+      data: {
+        Nama: currentPayload.Nama,
+        Jabatan: currentPayload.Jabatan,
+        Hari: currentPayload.Hari,
+        Jam_Mulai: jamMulaiFormat,
+        Jam_Selesai: jamSelesaiFormat,
+      }
     };
 
-    const targetKey = dayKeyMap[formData.hari];
+    setOpenModal(false);
+    setFormData({ Nama: "", Jabatan: "", Hari: "", Jam: "" });
 
-    setJadwalData((prevJadwal) =>
-      prevJadwal.map((slot) => {
-        if (slot.jam === formData.jam) {
-          return {
-            ...slot,
-            [targetKey]: {
-              nama: formData.nama,
-              jabatan: formData.jabatan || 'Anggota',
-            },
-          };
-        }
-        return slot;
-      })
-    );
+    try {
+      let res;
 
-    alert('Jadwal petugas berhasil diperbarui!');
-    setIsModalOpen(false);
+      if (targetItem) {
+        const documentIdOrId = targetItem.documentId || targetItem.id;
+        res = await fetch(`${API_URL}/${documentIdOrId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Tunnel-Skip-Browser-Warning": "true",
+          },
+          body: JSON.stringify(bodyPayload),
+        });
+      } else {
+        res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Tunnel-Skip-Browser-Warning": "true",
+          },
+          body: JSON.stringify(bodyPayload),
+        });
+      }
 
-    setFormData((prev) => ({ ...prev, nama: '' }));
+      if (!res.ok) {
+        throw new Error("Gagal menyimpan data ke server");
+      }
+
+      await fetchJadwal();
+
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menyimpan data ke server. Perubahan dikembalikan.");
+      setDataJadwal(previousJadwal);
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-inter">
-      <main className="flex-1 p-8 bg-white overflow-x-auto">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold text-[#51A2FF]">
-              Jadwal Petugas
-            </h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#0D2840] text-white px-6 py-2.5 rounded-full font-semibold flex items-center gap-2 hover:bg-slate-800 transition shadow cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
-              </svg>
-              Edit Petugas
-            </button>
-          </div>
+    <div className="w-full">
+      {/* Judul */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-4xl font-bold text-[#3B91FF]">
+          Jadwal Petugas
+        </h1>
 
-          {/* Grid 5 Kolom Utama (Diperlebar dengan min-w-[1100px] dan gap-5) */}
-          <div className="grid grid-cols-5 gap-5 min-w-[1100px] w-full">
-            {[
-              { hari: 'Senin', key: 'senin' },
-              { hari: 'Selasa', key: 'selasa' },
-              { hari: 'Rabu', key: 'rabu' },
-              { hari: 'Kamis', key: 'kamis' },
-              { hari: "Jum'at", key: 'jumat' },
-            ].map((item) => (
-              <div
-                key={item.hari}
-                className="bg-[#93C5FD] rounded-2xl overflow-hidden shadow-md flex flex-col border border-blue-200"
-              >
+        <button
+          onClick={() => setOpenModal(true)}
+          className="bg-[#182232] text-white px-5 py-3 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#243246] transition"
+        >
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 30 30"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="15"
+              cy="15"
+              r="11.25"
+              stroke="white"
+              strokeWidth="2"
+            />
+            <path
+              d="M15 18.75L15 11.25"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="square"
+            />
+            <path
+              d="M18.75 15L11.25 15"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="square"
+            />
+          </svg>
+          <span>Edit Petugas</span>
+        </button>
+      </div>
+
+      {/* Container Grid Hari */}
+      <div className="bg-[#EAEFF5] rounded-3xl p-5 shadow">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+
+          {hariList.map((hari) => {
+            return (
+              <div key={hari} className="rounded-2xl overflow-hidden shadow">
+
                 {/* Header Hari */}
-                <div className="bg-[#0D2840] text-white text-center py-3 font-bold text-base flex items-center justify-center gap-2">
-                  <span>📅</span> {item.hari}
+                <div className="bg-blue-950 text-white p-4 font-bold text-lg relative flex items-center justify-center">
+                  <img
+                    src="/images/kalender1.png"
+                    alt="Calendar"
+                    className="w-8 absolute left-4"
+                  />
+                  <span>{hari}</span>
                 </div>
 
-                {/* List Card Petugas (px-5 py-3.5 agar lebar ke samping tanpa terlalu tinggi) */}
-                <div className="flex flex-col divide-y divide-blue-300/60 flex-1">
-                  {jadwalData.map((slot, idx) => {
-                    const petugas = slot[item.key as keyof SlotJadwal] as Petugas;
-                    return (
-                      <div
-                        key={idx}
-                        className="px-5 py-3.5 flex flex-col justify-between hover:bg-blue-300/40 transition-colors"
-                      >
-                        <div>
-                          {/* Jam Jaga */}
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 mb-2">
-                            <span>🕒</span> {slot.jam}
+                {/* Sesi Jam */}
+                <div className="bg-blue-300">
+                  {loading ? (
+                    <div className="p-5 text-center">Memuat...</div>
+                  ) : (
+                    jamList.map((jamSlot) => {
+                      const [slotMulai] = jamSlot.split(" - ");
+
+                      const currentHariClean = hari.trim().toLowerCase().replace("'", "").replace("’", "");
+                      const currentJamMulaiClean = slotMulai.trim();
+
+                      const matchedItem = dataJadwal.find((item: any) => {
+                        const attr = item.attributes || item;
+                        const dbHariClean = attr.Hari ? String(attr.Hari).trim().toLowerCase().replace("'", "").replace("’", "") : "";
+
+                        let dbJamMulaiClean = "";
+                        if (attr.Jam_Mulai) {
+                          dbJamMulaiClean = String(attr.Jam_Mulai).slice(0, 5).trim();
+                        } else if (attr.jam) {
+                          dbJamMulaiClean = String(attr.jam).split("-")[0].trim();
+                        }
+
+                        return dbHariClean === currentHariClean && dbJamMulaiClean === currentJamMulaiClean;
+                      });
+
+                      const attr = matchedItem ? (matchedItem.attributes || matchedItem) : null;
+
+                      return (
+                        <div key={jamSlot} className="p-4 border-b bg-blue-300">
+                          <div className="flex items-center gap-2 text-sm mb-3">
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 30 30"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <ellipse
+                                cx="15"
+                                cy="15"
+                                rx="12.5"
+                                ry="12.5"
+                                stroke="#07479B"
+                                strokeWidth="1.5"
+                              />
+                              <path
+                                d="M15 10V15L17.5 17.5"
+                                stroke="#07479B"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>{jamSlot}</span>
                           </div>
 
-                          {/* Profil Petugas */}
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white text-xs shrink-0 shadow-xs">
-                              👤
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-bold text-sm text-slate-900 leading-snug truncate">
-                                {petugas.nama}
-                              </p>
-                              <p className="text-xs text-slate-700 font-medium mt-0.5">
-                                {petugas.jabatan}
-                              </p>
+                          <div className="flex gap-3 items-center">
+                            <img
+                              src="/images/icon1.png"
+                              alt="Icon"
+                              className="w-16 h-16 object-cover"
+                            />
+
+                            <div className="flex-1">
+                              {attr && (attr.Nama || attr.nama) ? (
+                                <>
+                                  <p className="font-bold text-sm">{attr.Nama || attr.nama}</p>
+                                  <p className="text-sm text-gray-700">{attr.Jabatan || attr.jabatan || "-"}</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="font-bold text-sm">Belum ada data</p>
+                                  <p className="text-sm text-gray-700">-</p>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
 
-      {/* Modal Edit Petugas */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative border border-gray-100">
-            {/* Tombol Back */}
+              </div>
+            );
+          })}
+
+        </div>
+      </div>
+
+      {/* Modal Edit/Simpan */}
+      {openModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="relative bg-white w-[500px] rounded-[28px] p-8 shadow-2xl">
+
             <button
-              onClick={() => setIsModalOpen(false)}
-              className="text-sky-500 hover:text-sky-700 mb-2 inline-block cursor-pointer"
+              onClick={() => setOpenModal(false)}
+              className="absolute top-8 left-12 text-[#2563EB]"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
-              </svg>
+              <IoArrowBack className="text-[38px]" />
             </button>
 
-            <h3 className="text-center text-sky-500 font-bold text-lg mb-6">
+            <h2 className="text-center text-3xl font-bold text-[#3B91FF] mt-6 mb-8">
               Jadwal Petugas
-            </h3>
+            </h2>
 
-            {/* Form Input */}
-            <form onSubmit={handleSimpan} className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Nama:
-                </label>
+                <label className="font-semibold block mb-2">Nama</label>
                 <input
                   type="text"
                   placeholder="Nama"
-                  value={formData.nama}
+                  value={formData.Nama}
                   onChange={(e) =>
-                    setFormData({ ...formData, nama: e.target.value })
+                    setFormData({ ...formData, Nama: e.target.value })
                   }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 text-black"
-                  required
+                  className="w-full border rounded-lg p-3"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Jabatan:
-                </label>
+                <label className="font-semibold block mb-2">Jabatan</label>
                 <select
-                  value={formData.jabatan}
+                  value={formData.Jabatan}
                   onChange={(e) =>
-                    setFormData({ ...formData, jabatan: e.target.value })
+                    setFormData({ ...formData, Jabatan: e.target.value })
                   }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
+                  className="w-full border rounded-lg p-3"
                 >
+                  <option value="">Pilih Jabatan</option>
                   <option value="Ketua">Ketua</option>
-                  <option value="Wakil Ketua">Wakil Ketua</option>
-                  <option value="Sekretaris">Sekretaris</option>
-                  <option value="Bendahara">Bendahara</option>
-                  <option value="Keamanan">Keamanan</option>
+                  <option value="Wakil">Wakil</option>
                   <option value="Anggota">Anggota</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Hari:
-                </label>
+                <label className="font-semibold block mb-2">Hari</label>
                 <select
-                  value={formData.hari}
+                  value={formData.Hari}
                   onChange={(e) =>
-                    setFormData({ ...formData, hari: e.target.value })
+                    setFormData({ ...formData, Hari: e.target.value })
                   }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
+                  className="w-full border rounded-lg p-3"
                 >
+                  <option value="">Pilih Hari</option>
                   <option value="Senin">Senin</option>
                   <option value="Selasa">Selasa</option>
                   <option value="Rabu">Rabu</option>
@@ -278,32 +349,31 @@ export default function AdminJadwalPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Jam:
-                </label>
+                <label className="font-semibold block mb-2">Jam</label>
                 <select
-                  value={formData.jam}
+                  value={formData.Jam}
                   onChange={(e) =>
-                    setFormData({ ...formData, jam: e.target.value })
+                    setFormData({ ...formData, Jam: e.target.value })
                   }
-                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-sky-500 bg-white text-black"
+                  className="w-full border rounded-lg p-3"
                 >
-                  <option value="07:00-09:00">07:00-09:00</option>
-                  <option value="09:00-11:00">09:00-11:00</option>
-                  <option value="11:00-13:00">11:00-13:00</option>
-                  <option value="13:00-15:00">13:00-15:00</option>
+                  <option value="">Pilih Jam</option>
+                  {jamList.map((j) => (
+                    <option key={j} value={j}>{j}</option>
+                  ))}
                 </select>
               </div>
 
-              <div className="pt-2 flex justify-center">
+              <div className="flex justify-center pt-4">
                 <button
-                  type="submit"
-                  className="bg-[#2563EB] text-white font-bold py-2 px-8 rounded-full text-xs hover:bg-blue-700 transition shadow-md active:scale-95 cursor-pointer"
+                  onClick={handleSave}
+                  className="bg-[#2563EB] text-white px-12 py-3 rounded-full font-bold hover:bg-blue-700"
                 >
                   Simpan
                 </button>
               </div>
-            </form>
+            </div>
+
           </div>
         </div>
       )}
