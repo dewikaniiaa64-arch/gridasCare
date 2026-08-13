@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { IoArrowBack } from "react-icons/io5";
 import { useRouter } from 'next/navigation';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // PASTIKAN URL INI SESUAI DENGAN PORT 1337 DI VS CODE PORTS TAB
 const API_URL = "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss";
