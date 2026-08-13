@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import { IoArrowBack } from "react-icons/io5";
 import { useRouter } from 'next/navigation';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 // PASTIKAN URL INI SESUAI DENGAN PORT 1337 DI VS CODE PORTS TAB
 const API_URL = "https://bmkvr3zj-1337.asse.devtunnels.ms/api/jadwal-piket-ukss";
@@ -29,25 +27,10 @@ export default function AdminJadwalPage() {
     "13:00 - 15:00"
   ];
 
-  // --- PROTEKSI HALAMAN (LANGSUNG DARI TAB / DIRECT URL) ---
+  // --- FETCH DATA SAAT HALAMAN DIBUKA ---
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
-    };
-
-    const token = getCookie('admin_token');
-
-    // Jika tidak ada cookie admin_token, langsung lempar ke halaman login/depan
-    if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
-      router.replace('/');
-      return;
-    }
-
     fetchJadwal();
-  }, [router]);
+  }, []);
 
   const fetchJadwal = async () => {
     try {
@@ -57,6 +40,13 @@ export default function AdminJadwalPage() {
           "X-Tunnel-Skip-Browser-Warning": "true", // Header wajib untuk Devtunnels
         },
       });
+
+      // Penanganan jika sesi login/token berakhir
+      if (res.status === 401) {
+        alert("Sesi kamu telah berakhir. Silakan login kembali.");
+        window.location.href = '/';
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(`Gagal memuat data (Status: ${res.status})`);
@@ -138,6 +128,13 @@ export default function AdminJadwalPage() {
           },
           body: JSON.stringify(bodyPayload),
         });
+      }
+
+      // Penanganan jika sesi login/token berakhir saat menyimpan
+      if (res.status === 401) {
+        alert("Sesi kamu telah berakhir. Silakan login kembali.");
+        window.location.href = '/';
+        return;
       }
 
       if (!res.ok) {
