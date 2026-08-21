@@ -5,11 +5,9 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
+const STRAPI_URL =
+  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
-if (!STRAPI_URL) {
-  throw new Error("NEXT_PUBLIC_STRAPI_URL belum diset");
-}
 interface SiswaSakitItem {
   id: number;
   documentId?: string;
@@ -25,7 +23,7 @@ const STATUS_OPTIONS = [
   "Istirahat di UKS",
   "Kembali ke Kelas",
   "Dipulangkan",
-  "Rujukan RS",
+  "Rujukan ke RS",
 ];
 
 export default function AdminSiswaSakitPage() {
@@ -131,7 +129,7 @@ export default function AdminSiswaSakitPage() {
         return "bg-green-500";
       case "Dipulangkan":
         return "bg-red-500";
-      case "Rujukan RS":
+      case "Rujukan ke RS":
         return "bg-blue-500";
       default:
         return "bg-gray-500";
@@ -642,7 +640,7 @@ export default function AdminSiswaSakitPage() {
             </div>
 
             {/* Tombol Cetak Surat khusus Dipulangkan & Rujukan RS */}
-            {["Dipulangkan", "Rujukan RS"].includes(selectedItem.status.trim()) && (
+            {["Dipulangkan", "Rujukan ke RS"].includes(selectedItem.status.trim()) && (
               <div className="mt-5 pt-4 border-t">
                 <button
                   onClick={() => generateSuratPDF(selectedItem)}
