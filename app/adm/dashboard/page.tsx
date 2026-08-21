@@ -5,9 +5,11 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const STRAPI_URL =
-  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
 
+if (!STRAPI_URL) {
+  throw new Error("NEXT_PUBLIC_STRAPI_URL belum diset");
+}
 interface SiswaSakitItem {
   id: number;
   documentId?: string;

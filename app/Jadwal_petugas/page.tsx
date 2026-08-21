@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import HeroJadwal from "@/components/organisms/HeroJadwal";
 import JadwalList from "@/components/organisms/JadwalList";
 
-const STRAPI_URL =
-  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
+
+if (!STRAPI_URL) {
+  throw new Error("NEXT_PUBLIC_STRAPI_URL belum diset");
+}
 
 export default function JadwalPetugasUserPage() {
   const [jadwalList, setJadwalList] = useState<any[]>([]);

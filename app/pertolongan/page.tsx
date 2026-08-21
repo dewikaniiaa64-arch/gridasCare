@@ -5,6 +5,8 @@ import HeroPertolongan from "@/components/organisms/HeroPertolongan";
 import PertolonganCard from "@/components/molecules/PertolonganCard";
 import WarningBox from "@/components/organisms/WarningBox";
 
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
+
 export default function PertolonganPage() {
   const [daftarPertolongan, setDaftarPertolongan] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -19,19 +21,25 @@ export default function PertolonganPage() {
   useEffect(() => {
     const fetchPertolonganFromStrapi = async () => {
       try {
+        if (!STRAPI_URL) {
+          throw new Error("NEXT_PUBLIC_STRAPI_URL belum diset");
+        }
+
         const response = await fetch(
-          "https://bmkvr3zj-1337.asse.devtunnels.ms/api/pertolongan-pertamas?populate=*",
+          `${STRAPI_URL}/api/pertolongan-pertamas?populate=*`
         );
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data dari server Strapi");
+          throw new Error(
+            `Gagal mengambil data dari server Strapi (${response.status})`
+          );
         }
 
         const result = await response.json();
         setDaftarPertolongan(result.data || []);
       } catch (err: any) {
         console.error("Error fetching pertolongan pertama:", err);
-        setError(err.message);
+        setError(err.message || "Gagal mengambil data");
       } finally {
         setLoading(false);
       }
@@ -40,29 +48,40 @@ export default function PertolonganPage() {
     fetchPertolonganFromStrapi();
   }, []);
 
-  // Helper konversi Rich Text 'Panduan' dari Strapi menjadi array steps
+  // Helper konversi Rich Text "Panduan" dari Strapi menjadi array langkah
   const parsePanduanToSteps = (panduanBlocks: any[]): string[] => {
-    if (!panduanBlocks || !Array.isArray(panduanBlocks)) return [];
+    if (!panduanBlocks || !Array.isArray(panduanBlocks)) {
+      return [];
+    }
 
     const steps: string[] = [];
 
     panduanBlocks.forEach((block: any) => {
       if (block.type === "list" && Array.isArray(block.children)) {
         block.children.forEach((listItem: any) => {
-          if (listItem.children) {
+          if (Array.isArray(listItem.children)) {
             const text = listItem.children
-              .map((child: any) => child.text)
+              .map((child: any) => child.text || "")
               .join("")
               .trim();
-            if (text) steps.push(text);
+
+            if (text) {
+              steps.push(text);
+            }
           }
         });
-      } else if (block.type === "paragraph" && Array.isArray(block.children)) {
+      } else if (
+        block.type === "paragraph" &&
+        Array.isArray(block.children)
+      ) {
         const text = block.children
-          .map((child: any) => child.text)
+          .map((child: any) => child.text || "")
           .join("")
           .trim();
-        if (text) steps.push(text);
+
+        if (text) {
+          steps.push(text);
+        }
       }
     });
 
@@ -98,26 +117,32 @@ export default function PertolonganPage() {
 
           {!loading && !error && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {daftarPertolongan.map((item) => {
+              {daftarPertolongan.map((item: any) => {
                 const data = item?.attributes || item;
 
-                const title = data.Nama || data.nama || "Pertolongan Pertama";
+                const title =
+                  data.Nama ||
+                  data.nama ||
+                  "Pertolongan Pertama";
+
                 const description = (
                   data.Deskripsi ||
                   data.deskripsi ||
                   ""
                 ).replace(/\n/g, " ");
-                const steps = parsePanduanToSteps(data.Panduan || data.panduan);
 
-                // URL Gambar Strapi
+                const steps = parsePanduanToSteps(
+                  data.Panduan || data.panduan
+                );
+
+                // URL gambar dari Strapi / Cloudinary
                 const pathGambar =
                   data?.Gambar?.url ||
                   data?.gambar?.data?.attributes?.url ||
                   data?.gambar?.url;
 
-                const strapiUrl =
-                  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-                let image = "/images/luka.png"; // Fallback
+                const strapiUrl = STRAPI_URL || "";
+                let image = "/images/luka.png";
 
                 if (pathGambar) {
                   image = pathGambar.startsWith("http")
@@ -148,14 +173,15 @@ export default function PertolonganPage() {
 
       <WarningBox />
 
-      {/* Pop-up / Modal */}
+      {/* Popup / Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#3A5A78] rounded-3xl w-full max-w-md p-6 sm:p-8 relative shadow-2xl animate-[fadeIn_.3s_ease] max-h-[90vh] overflow-y-auto">
-            {/* Tombol Tutup */}
+            {/* Tombol tutup */}
             <button
               onClick={() => setSelected(null)}
               className="absolute top-5 left-5 text-white text-3xl hover:scale-110 transition cursor-pointer"
+              aria-label="Tutup"
             >
               ←
             </button>

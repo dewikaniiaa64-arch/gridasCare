@@ -42,9 +42,11 @@ export default function ObatObatanPage() {
   useEffect(() => {
     const fetchObatFromStrapi = async () => {
       try {
-        const strapiBaseUrl =
-          process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
+        const strapiBaseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 
+        if (!strapiBaseUrl) {
+          throw new Error("NEXT_PUBLIC_STRAPI_URL belum diset");
+        }
         const response = await fetch(
           `${strapiBaseUrl}/api/obat-obatans?populate=*`
         );
@@ -94,38 +96,38 @@ export default function ObatObatanPage() {
     >
       {/* Hero Section */}
       <section className="bg-transparent">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      
-              <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-8">
-      
-                {/* Kiri */}
-                <div className="max-w-2xl text-center lg:text-left">
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0A405A] mb-4">
-                    Obat - obatan
-                  </h1>
-      
-                  <p className="text-gray-700 max-w-md text-sm md:text-base mx-auto lg:mx-0">
-                  Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
-                  ringan.
-                  </p>
-                </div>
-      
-                {/* Kanan */}
-                <div className="flex justify-center">
-                  <Image
-                    src="/images/obet.png"
-                    alt="Ilustrasi Obat"
-                    width={260}
-                    height={220}
-                    className="w-[180px] sm:w-[220px] lg:w-[260px] h-auto object-contain"
-                    priority
-                  />
-                </div>
-      
-              </div>
-      
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+          <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-8">
+
+            {/* Kiri */}
+            <div className="max-w-2xl text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0A405A] mb-4">
+                Obat - obatan
+              </h1>
+
+              <p className="text-gray-700 max-w-md text-sm md:text-base mx-auto lg:mx-0">
+                Daftar obat yang tersedia di UKS untuk membantu mengatasi keluhan
+                ringan.
+              </p>
             </div>
-          </section>
+
+            {/* Kanan */}
+            <div className="flex justify-center">
+              <Image
+                src="/images/obet.png"
+                alt="Ilustrasi Obat"
+                width={260}
+                height={220}
+                className="w-[180px] sm:w-[220px] lg:w-[260px] h-auto object-contain"
+                priority
+              />
+            </div>
+
+          </div>
+
+        </div>
+      </section>
 
       {loading && (
         <div className="text-center py-12 text-[#0A405A] font-semibold text-lg">
@@ -157,8 +159,8 @@ export default function ObatObatanPage() {
               obat?.gambar?.data?.attributes?.url ||
               obat?.gambar?.url;
             const strapiUrl =
-              process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-            let gambarUrl = "/images/paracetamol.png";
+              process.env.NEXT_PUBLIC_STRAPI_URL || "";
+            let gambarUrl = "";
 
             if (pathGambar) {
               gambarUrl = pathGambar.startsWith("http")

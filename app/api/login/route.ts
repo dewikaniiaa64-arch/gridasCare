@@ -4,25 +4,32 @@ export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
 
-    // Mengambil URL Strapi dari .env.local
-    const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+    const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
 
-    // Melempar data username & password ke backend Strapi untuk divalidasi
+    if (!strapiUrl) {
+      return Response.json(
+        { error: "NEXT_PUBLIC_STRAPI_URL belum diset" },
+        { status: 500 }
+      );
+    }
+
+    // Fetch ke Strapi
     const strapiResponse = await fetch(`${strapiUrl}/api/auth/local`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Tunnel-Skip-Browser-Warning': 'true', // Mencegah pemblokiran oleh Devtunnels
       },
       body: JSON.stringify({
-        identifier: username, // Strapi menggunakan 'identifier' untuk username/email
+        identifier: username,
         password: password,
       }),
     });
 
     const data = await strapiResponse.json();
 
-    // Jika Strapi menolak (username/password salah)
-    if (!strapiResponse.ok) {
+    // Jika username/password salah atau JWT tidak ditemukan
+    if (!strapiResponse.ok || !data.jwt) {
       return NextResponse.json(
         {
           success: false,
@@ -32,20 +39,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Buat objek response sukses
     const response = NextResponse.json({
       success: true,
       message: 'Login berhasil!',
-      jwt: data.jwt,   // Token akses dari backend Strapi
-      user: data.user, // Data user dari backend Strapi
+      user: data.user,
     });
 
-    // --- PERBAIKAN UTAMA: Set Cookie langsung dari HTTP Response Header ---
-    response.cookies.set('admin_token', data.jwt || 'true', {
+    // --- PERBAIKAN KEAMANAN: SET HTTP-ONLY COOKIE ---
+    response.cookies.set('admin_token', data.jwt, {
+      httpOnly: true, // WAJIB! Dilarang diakses oleh JavaScript (bebas dari jebolan F12 console)
       path: '/',
-      secure: process.env.NODE_ENV === 'production', // Otomatis aktif HTTPS di Vercel
+      secure: process.env.NODE_ENV === 'production', // Otomatis aktif HTTPS saat ter-deploy
       sameSite: 'lax',
-      maxAge: 86400, // Berlaku selama 24 jam (dalam detik)
+      maxAge: 86400, // 24 jam
     });
 
     return response;

@@ -14,35 +14,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // --- PROTEKSI HALAMAN (CLIENT-SIDE GUARD) ---
+  // --- PROTEKSI HALAMAN (CLIENT-SIDE GUARD VIA SERVER/MIDDLEWARE) ---
   useEffect(() => {
-    // Fungsi membaca cookie sederhana
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
+    // Karena middleware.ts sudah mencegat pengguna tanpa cookie di server,
+    // halaman ini otomatis dianggap Authorized begitu berhasil dimuat.
+    setIsAuthorized(true);
+
+    // Penanganan BFCache (tombol Back browser)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        window.location.reload();
+      }
     };
 
-    const token = getCookie('admin_token');
-
-    // Cek jika token tidak ada, bernilai 'undefined', atau 'null'
-    if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
-      // Tendang langsung ke halaman login (atau halaman utama /)
-      router.replace('/');
-    } else {
-      setIsAuthorized(true);
-    }
-  }, [router]);
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
 
   // Fungsi penanganan logout sebenarnya
-  const handleConfirmLogout = () => {
-    // Hapus cookie admin_token
-    document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-
+  const handleConfirmLogout = async () => {
     setShowLogoutModal(false);
-    // Menggunakan path relatif '/' agar bisa berjalan di localhost maupun Vercel
-    router.replace('/');
+
+    // Hapus cookie melalui API logout jika ada, atau gunakan hard redirect untuk bersihkan state Next.js
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Hard Redirect untuk membersihkan total cache browser
+    window.location.href = '/';
   };
 
   // Tampilkan screen kosong / loading sebelum status auth terverifikasi
