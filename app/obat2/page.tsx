@@ -175,12 +175,14 @@ export default function ObatObatanPage() {
               >
                 {/* Bagian Atas Card (Gambar + Judul) */}
                 <div className="flex gap-3 mb-4 items-start">
-                  <div className="w-16 h-16 sm:w-20 sm:h-16 relative shrink-0">
+                  {/* Mengubah tinggi wadah menjadi h-16 atau h-20 agar lebih leluasa */}
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 relative shrink-0 flex items-center justify-center">
                     <Image
                       src={gambarUrl}
                       alt={nama}
                       fill
-                      className="object-cover"
+                      /* UBAH object-cover MENJADI object-contain DI SINI */
+                      className="object-contain"
                       unoptimized={true}
                     />
                   </div>
@@ -193,7 +195,6 @@ export default function ObatObatanPage() {
                     </span>
                   </div>
                 </div>
-
                 {/* Deskripsi / Kegunaan Obat */}
                 <p className="text-xs text-gray-600 mb-4 flex-grow leading-relaxed">
                   {desc}
